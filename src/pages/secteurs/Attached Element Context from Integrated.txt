@@ -1,0 +1,134 @@
+Attached Element Context from Integrated Browser
+
+Element: div.absolute.inset-0.bg-gradient-to-br.from-khwarizmia-gold/10.to-transparent.rounded-2xl.opacity-60
+
+URL: http://localhost:5173/
+
+HTML Path: div#root > div.min-h-screen.bg-background > div.min-h-screen.bg-background.text-foreground.transition-colors.duration-300 > section.py-24.relative.overflow-hidden.bg-stone-100 > div.container.mx-auto.px-6.relative.z-10 > div.max-w-7xl.mx-auto > div.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-4.gap-6.md:gap-8.lg:gap-10 > div.relative.min-h-[280px].bg-white.backdrop-blur-xl.p-6.rounded-2xl.shadow-lg.border.border-stone-700/30.dark:border-stone-600/40.hover:border-khwarizmia-gold/35.transition-all.duration-300.ease-out.cursor-pointer.z-10.hover:z-20.text-center > div.absolute.inset-0.bg-gradient-to-br.from-khwarizmia-gold/10.to-transparent.rounded-2xl.opacity-60
+
+Outer HTML:
+```html
+<div class="absolute inset-0 bg-gradient-to-br from-khwarizmia-gold/10 to-transparent rounded-2xl opacity-60"></div>
+```
+
+Dimensions:
+- top: 246px
+- left: 373px
+- width: 297px
+- height: 346px
+
+CSS:
+```css
+*, ::before, ::after { --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x:  ;
+  --tw-pan-y:  ;
+  --tw-pinch-zoom:  ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position:  ;
+  --tw-gradient-via-position:  ;
+  --tw-gradient-to-position:  ;
+  --tw-ordinal:  ;
+  --tw-slashed-zero:  ;
+  --tw-numeric-figure:  ;
+  --tw-numeric-spacing:  ;
+  --tw-numeric-fraction:  ;
+  --tw-ring-inset:  ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur:  ;
+  --tw-brightness:  ;
+  --tw-contrast:  ;
+  --tw-grayscale:  ;
+  --tw-hue-rotate:  ;
+  --tw-invert:  ;
+  --tw-saturate:  ;
+  --tw-sepia:  ;
+  --tw-drop-shadow:  ;
+  --tw-backdrop-blur:  ;
+  --tw-backdrop-brightness:  ;
+  --tw-backdrop-contrast:  ;
+  --tw-backdrop-grayscale:  ;
+  --tw-backdrop-hue-rotate:  ;
+  --tw-backdrop-invert:  ;
+  --tw-backdrop-opacity:  ;
+  --tw-backdrop-saturate:  ;
+  --tw-backdrop-sepia:  ;
+  --tw-contain-size:  ;
+  --tw-contain-layout:  ;
+  --tw-contain-paint:  ;
+  --tw-contain-style:  ; }
+*, ::before, ::after { box-sizing: border-box; /* 1 */
+  border-width: 0; /* 2 */
+  border-style: solid; /* 2 */
+  border-color: #e5e7eb; /* 2 */ }
+* { border-color: hsl(var(--border)); }
+.absolute { position: absolute; }
+.inset-0 { inset: 0px; }
+.rounded-2xl { border-radius: 1rem; }
+.bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)); }
+.from-khwarizmia-gold\/10 { --tw-gradient-from: rgb(212 188 126 / 0.1) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(212 188 126 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-transparent { --tw-gradient-to: transparent var(--tw-gradient-to-position); }
+.opacity-60 { opacity: 0.6; }
+
+/* Pseudo-elements */
+::before, ::after { --tw-content: ''; }
+body *::selection { background-color: rgb(59 130 246 / 0.3);
+  --tw-text-opacity: 1;
+  color: rgb(191 219 254 / var(--tw-text-opacity, 1)); }
+
+/* Inherited */
+.cursor-pointer { cursor: pointer }
+.text-center { text-align: center }
+.text-foreground { color: hsl(var(--foreground)) }
+body { font-family: Inter, sans-serif; color: hsl(var(--foreground)) }
+body { font-feature-settings: "rlig" 1, "calt" 1 }
+html, :host { line-height: 1.5; tab-size: 4 }
+
+/* Resolved values */
+border-radius: 16px;
+border: 0px solid rgb(226, 232, 240);
+background-color: rgba(0, 0, 0, 0);
+background-image: linear-gradient(to right bottom, rgba(212, 188, 126, 0.1), rgba(0, 0, 0, 0));
+bottom: 0px;
+box-sizing: border-box;
+color: rgb(15, 23, 42);
+cursor: pointer;
+display: block;
+font-family: Inter, sans-serif;
+font-feature-settings: "calt", "rlig";
+height: 336px;
+left: 0px;
+line-height: 24px;
+opacity: 0.6;
+position: absolute;
+right: 0px;
+tab-size: 4;
+text-align: center;
+top: 0px;
+unicode-bidi: isolate /*UA*/;
+width: 288.857px;
+
+/* CSS variables */
+--border: 214.3 31.8% 91.4%;
+--tw-gradient-stops: rgb(212 188 126 / 0.1) , transparent ;
+--tw-gradient-from: rgb(212 188 126 / 0.1) ;
+--tw-gradient-to: transparent ;
+--tw-gradient-to-position: ;
+--foreground: 222 47% 11.2%;
+--tw-gradient-from-position: ;
+```
