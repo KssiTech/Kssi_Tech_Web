@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { sectors } from "@/data/sectors";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Overlay gradients per sector — same palette as hero panels
 const OVERLAYS: Record<string, string> = {
@@ -27,7 +28,9 @@ const ACCENTS: Record<string, string> = {
   maintenance:    "#C6A667",
 };
 
-const SecteursList: React.FC = () => (
+const SecteursList: React.FC = () => {
+  const { t } = useLanguage();
+  return (
   <>
     <Helmet>
       <title>Nos Secteurs d'Expertise | KSSI TECH</title>
@@ -53,14 +56,14 @@ const SecteursList: React.FC = () => (
           >
             <div className="inline-flex items-center gap-2 rounded-full border border-[#caa35e]/30 bg-[#caa35e]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#caa35e] mb-6">
               <span className="h-1.5 w-1.5 rounded-full bg-[#caa35e]" aria-hidden />
-              Expertise technique
+              {t("sectors.tagline")}
             </div>
             <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Nos Secteurs<br className="hidden sm:block" />
-              <span className="text-[#caa35e]"> d'Expertise</span>
+              {t("sectors.pageTitle")}<br className="hidden sm:block" />
+              <span className="text-[#caa35e]"> {t("sectors.pageSubtitle")}</span>
             </h1>
             <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
-              Six domaines techniques complémentaires — de l'étude à la mise en service depuis Safi, Maroc.
+              {t("sectors.pageDesc")}
             </p>
           </motion.div>
         </div>
@@ -127,7 +130,7 @@ const SecteursList: React.FC = () => (
 
                       {/* Sector name */}
                       <h2 className="text-white font-bold text-xl lg:text-2xl mb-2 leading-tight tracking-tight">
-                        {sector.name}
+                        {t(`sectors.services.${sector.slug}.name`)}
                       </h2>
 
                       {/* Short description — appears on hover */}
@@ -135,7 +138,7 @@ const SecteursList: React.FC = () => (
                         className="text-white/70 text-sm leading-relaxed mb-4 max-w-xs opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0"
                         style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                       >
-                        {sector.shortDescription}
+                        {t(`sectors.services.${sector.slug}.short`)}
                       </p>
 
                       {/* CTA */}
@@ -143,7 +146,7 @@ const SecteursList: React.FC = () => (
                         className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg transition-all duration-200 group-hover:gap-3"
                         style={{ background: accent, color: '#15171f', boxShadow: `0 4px 14px ${accent}44` }}
                       >
-                        Découvrir <ArrowRight className="w-3.5 h-3.5" />
+                        {t("common.readMore")} <ArrowRight className="w-3.5 h-3.5" />
                       </div>
                     </div>
                   </Link>
@@ -168,9 +171,9 @@ const SecteursList: React.FC = () => (
             <div className="absolute inset-0 bg-gradient-to-r from-khwarizmia-navy/95 to-khwarizmia-navy/75" />
 
             <div className="relative px-10 py-14 text-white text-center">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-4">Besoin d'une solution sur mesure ?</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-4">{t("sectors.contactCta")}</h2>
               <p className="text-gray-200 max-w-2xl mx-auto mb-8 text-lg leading-relaxed">
-                Notre équipe pluridisciplinaire analyse vos besoins et propose une offre intégrée couvrant plusieurs secteurs.
+                {t("sectors.contactDesc")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
@@ -178,13 +181,13 @@ const SecteursList: React.FC = () => (
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all hover:opacity-90 shadow-lg"
                   style={{ background: '#caa35e', color: '#15171f' }}
                 >
-                  Nous contacter <ArrowRight className="w-4 h-4" />
+                  {t("common.contactUs")} <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/request-demo"
                   className="inline-flex items-center gap-2 px-8 py-4 rounded-xl border border-white/30 text-white font-bold text-sm uppercase tracking-wider hover:bg-white/10 transition-colors"
                 >
-                  Demander un devis
+                  {t("common.requestQuote")}
                 </Link>
               </div>
             </div>
@@ -195,6 +198,7 @@ const SecteursList: React.FC = () => (
 
     <Footer />
   </>
-);
+  );
+};
 
 export default SecteursList;

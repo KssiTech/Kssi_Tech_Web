@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import HeroDotGridBackground from "@/components/HeroDotGridBackground";
 import StitchAuroraLayer from "@/components/StitchAuroraLayer";
 import { useNavigate } from "react-router-dom";
@@ -32,62 +33,61 @@ const services = [
     name: "Électricité BT/MT",
     short: "Études, fourniture et réalisation d'installations électriques basse et moyenne tension, agréé ONEE.",
     Icon: Zap,
-    accent: "bg-khwarizmia-teal/10",
     iconGradient: "from-khwarizmia-navy to-stone-700",
     iconColor: "text-khwarizmia-paper",
+    image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&q=80",
   },
   {
     slug: "automatisation",
     name: "Automatisation",
     short: "Conception et intégration de systèmes automatisés, pupitres de commande et automates programmables.",
     Icon: Settings,
-    accent: "bg-khwarizmia-gold/15",
     iconGradient: "from-khwarizmia-teal to-khwarizmia-bronze",
     iconColor: "text-khwarizmia-navy",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80",
   },
   {
     slug: "energie",
     name: "Énergie Renouvelable",
     short: "Fourniture et installation de centrales photovoltaïques et solutions d'énergie propre adaptées.",
     Icon: Sun,
-    accent: "bg-stone-200/60",
     iconGradient: "from-stone-600 to-khwarizmia-navy",
     iconColor: "text-khwarizmia-paper",
+    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80",
   },
   {
     slug: "reseaux",
     name: "Réseaux Informatiques",
     short: "Déploiement d'infrastructures réseau cuivre et fibre optique avec équipements actifs inclus.",
     Icon: Network,
-    accent: "bg-khwarizmia-bronze/10",
     iconGradient: "from-khwarizmia-bronze to-stone-700",
     iconColor: "text-khwarizmia-paper",
+    image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80",
   },
   {
     slug: "surveillance",
     name: "Vidéo Surveillance",
     short: "Installation de systèmes CCTV, contrôle d'accès et solutions de sécurité périmétrique.",
     Icon: Eye,
-    accent: "bg-khwarizmia-teal/10",
     iconGradient: "from-khwarizmia-navy to-khwarizmia-teal",
     iconColor: "text-khwarizmia-paper",
+    image: "https://images.unsplash.com/photo-1580983559367-0dc2f8934365?w=600&q=80",
   },
   {
     slug: "maintenance",
     name: "Maintenance Industrielle",
     short: "Maintenance préventive et corrective de l'ensemble des équipements industriels et tertiaires.",
     Icon: Wrench,
-    accent: "bg-khwarizmia-gold/15",
     iconGradient: "from-khwarizmia-teal to-khwarizmia-bronze",
     iconColor: "text-khwarizmia-navy",
+    image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&q=80",
   },
 ];
 
 const whyCards = [
   {
     icon: Award,
-    title: "Agréé ONEE",
-    body: "Certification officielle de l'Office National de l'Électricité et de l'Eau Potable pour la réalisation de travaux électriques BT/MT en toute conformité réglementaire.",
+    key: "onee",
     gradient: "from-khwarizmia-navy to-stone-800",
     bgAccent: "from-khwarizmia-teal/12",
     border: "hover:border-khwarizmia-teal/40",
@@ -96,8 +96,7 @@ const whyCards = [
   },
   {
     icon: Users,
-    title: "20+ Clients de Référence",
-    body: "Maroc Telecom, Lafarge Placo, OFPPT, RADEES, universités publiques et entreprises industrielles de premier plan font confiance à notre expertise depuis des années.",
+    key: "clients",
     gradient: "from-khwarizmia-teal to-khwarizmia-bronze",
     bgAccent: "from-khwarizmia-gold/10",
     border: "hover:border-khwarizmia-gold/35",
@@ -106,8 +105,7 @@ const whyCards = [
   },
   {
     icon: Layers,
-    title: "Expertise 360°",
-    body: "Six secteurs techniques complémentaires couverts par une seule équipe intégrée — de l'électricité à la maintenance, en passant par l'énergie solaire et les réseaux.",
+    key: "expertise",
     gradient: "from-stone-600 to-khwarizmia-navy",
     bgAccent: "from-stone-500/10",
     border: "hover:border-stone-500/40",
@@ -116,8 +114,7 @@ const whyCards = [
   },
   {
     icon: Shield,
-    title: "Réactivité & Fiabilité",
-    body: "Intervention rapide, respect scrupuleux des délais et suivi après livraison — un engagement concret sur chaque chantier, sans compromis sur la qualité d'exécution.",
+    key: "reliability",
     gradient: "from-khwarizmia-bronze to-stone-700",
     bgAccent: "from-khwarizmia-bronze/12",
     border: "hover:border-khwarizmia-bronze/40",
@@ -128,6 +125,7 @@ const whyCards = [
 
 const Index = () => {
   const { isDark } = useTheme();
+  const { t, ta } = useLanguage();
   const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
 
@@ -147,7 +145,7 @@ const Index = () => {
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="w-12 h-12 border-4 border-t-transparent border-primary rounded-full mx-auto mb-4"
           />
-          <p className="text-foreground font-medium">Chargement KSSI TECH…</p>
+          <p className="text-foreground font-medium">{t("home.loading")}</p>
         </div>
       </div>
     );
@@ -263,7 +261,7 @@ const Index = () => {
                         className={`h-1.5 w-1.5 shrink-0 rounded-full ${isDark ? "bg-khwarizmia-gold" : "bg-khwarizmia-teal"}`}
                         aria-hidden
                       />
-                      Leading Technical Future World
+                      {t("home.hero.tagline")}
                     </div>
                   </motion.div>
 
@@ -285,10 +283,10 @@ const Index = () => {
                     className={`space-y-3 text-center lg:text-left max-w-xl ${isDark ? "text-stone-400" : "text-stone-600"}`}
                   >
                     <p className="finance-subheading text-lg md:text-xl font-medium leading-snug tracking-tight">
-                      Votre partenaire d'excellence en ingénierie industrielle et tertiaire.
+                      {t("home.hero.subtitle")}
                     </p>
                     <p className="finance-body text-base md:text-lg leading-relaxed text-balance opacity-95">
-                      Électricité · Automatisation · Énergie Renouvelable · Réseaux · Vidéo Surveillance · Maintenance — de l'étude à la mise en service, depuis Safi, Maroc.
+                      {t("home.hero.body")}
                     </p>
                   </motion.div>
 
@@ -314,7 +312,7 @@ const Index = () => {
                             : "bg-khwarizmia-navy text-khwarizmia-paper hover:bg-stone-800"
                         }`}
                       >
-                        Nos Services
+                        {t("home.hero.ctaServices")}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     </motion.div>
@@ -333,7 +331,7 @@ const Index = () => {
                             : "border-stone-200 bg-white/90 text-khwarizmia-navy hover:bg-white"
                         }`}
                       >
-                        Nous Contacter
+                        {t("home.hero.ctaContact")}
                         <Phone className="ml-2 h-4 w-4 opacity-80" />
                       </Button>
                     </motion.div>
@@ -386,10 +384,10 @@ const Index = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold mb-6 text-khwarizmia-navy">
-              Nos Domaines d'Expertise
+              {t("home.services.title")}
             </h2>
             <p className="text-xl text-stone-600 max-w-4xl mx-auto">
-              Six secteurs techniques complémentaires couverts par une seule équipe pluridisciplinaire — de la conception à la mise en service, KSSI TECH assure l'intégralité de vos besoins techniques.
+              {t("home.services.desc")}
             </p>
           </motion.div>
         </div>
@@ -402,28 +400,36 @@ const Index = () => {
           }}
         >
           <div className="kw-marquee-track flex gap-6 w-max px-6">
-            {[...services, ...services].map(({ slug, name, short, Icon, accent, iconGradient, iconColor }, i) => (
+            {[...services, ...services].map(({ slug, name, short, Icon, iconGradient, iconColor, image }, i) => (
               <div key={`${slug}-${i}`} className="group w-[272px] shrink-0">
                 <button
                   type="button"
                   onClick={() => navigate(`/secteurs/${slug}`)}
-                  className="h-full w-full text-left p-6 rounded-2xl transition-all duration-500 bg-white border border-stone-200/80 shadow-md hover:shadow-xl hover:-translate-y-2 relative overflow-hidden cursor-pointer"
+                  className="h-full w-full text-left rounded-2xl transition-all duration-500 bg-white border border-stone-200/80 shadow-md hover:shadow-xl hover:-translate-y-2 overflow-hidden cursor-pointer flex flex-col"
                 >
-                  <div
-                    className={`absolute top-0 right-0 w-28 h-28 ${accent} rounded-bl-full -mr-8 -mt-8 opacity-70 group-hover:scale-150 transition-transform duration-700 ease-out`}
-                  />
-                  <div className="relative z-10">
+                  {/* Photo */}
+                  <div className="relative h-40 w-full overflow-hidden shrink-0">
+                    <img
+                      src={image}
+                      alt={name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
                     <div
-                      className={`w-12 h-12 bg-gradient-to-br ${iconGradient} rounded-xl flex items-center justify-center mb-4 ${iconColor} shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                      className={`absolute bottom-3 left-3 w-9 h-9 bg-gradient-to-br ${iconGradient} rounded-lg flex items-center justify-center ${iconColor} shadow-lg`}
                     >
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <h3 className="text-lg font-bold text-khwarizmia-navy font-sans tracking-tight group-hover:text-khwarizmia-bronze transition-colors mb-2">
-                      {name}
+                  </div>
+                  {/* Content */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="text-base font-bold text-khwarizmia-navy font-sans tracking-tight group-hover:text-khwarizmia-bronze transition-colors mb-2">
+                      {t(`sectors.services.${slug}.name`)}
                     </h3>
-                    <p className="text-stone-600 text-sm leading-relaxed">{short}</p>
+                    <p className="text-stone-600 text-sm leading-relaxed flex-1">{t(`sectors.services.${slug}.short`)}</p>
                     <div className="mt-4 flex items-center gap-1 text-khwarizmia-bronze text-xs font-semibold group-hover:gap-2 transition-all duration-200">
-                      En savoir plus <ArrowRight className="w-3 h-3" />
+                      {t("common.readMore")} <ArrowRight className="w-3 h-3" />
                     </div>
                   </div>
                 </button>
@@ -463,15 +469,15 @@ const Index = () => {
               <h2
                 className={`finance-heading text-4xl md:text-5xl font-bold ${isDark ? "text-white" : "text-khwarizmia-navy"} mb-6 tracking-tight`}
               >
-                Pourquoi choisir{" "}
+                {t("home.why.title")}{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-khwarizmia-teal to-khwarizmia-gold">
-                  KSSI TECH ?
+                  {t("home.why.highlight")}
                 </span>
               </h2>
               <p
                 className={`finance-body text-lg md:text-xl ${isDark ? "text-stone-300" : "text-stone-600"} max-w-3xl mx-auto leading-relaxed`}
               >
-                Une entreprise certifiée, pluridisciplinaire et ancrée dans le tissu industriel marocain — portée par une équipe dédiée à l'excellence technique et à la satisfaction durable de ses clients.
+                {t("home.why.subtitle")}
               </p>
             </motion.div>
 
@@ -485,9 +491,9 @@ const Index = () => {
               }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 lg:gap-10"
             >
-              {whyCards.map(({ icon: Icon, title, body, gradient, bgAccent, border, iconColor, rotateY }) => (
+              {whyCards.map(({ icon: Icon, key, gradient, bgAccent, border, iconColor, rotateY }) => (
                 <motion.div
-                  key={title}
+                  key={key}
                   variants={{
                     hidden: { opacity: 0, y: 80, rotateX: 25, scale: 0.85 },
                     visible: {
@@ -516,10 +522,10 @@ const Index = () => {
                     <h3
                       className={`finance-heading text-base md:text-lg font-bold ${isDark ? "text-white" : "text-khwarizmia-navy"} mb-3 leading-tight`}
                     >
-                      {title}
+                      {t(`home.why.cards.${key}.title`)}
                     </h3>
                     <p className={`finance-body ${isDark ? "text-stone-300" : "text-stone-600"} text-sm md:text-base leading-relaxed`}>
-                      {body}
+                      {t(`home.why.cards.${key}.body`)}
                     </p>
                   </div>
                 </motion.div>
@@ -537,10 +543,10 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { k: "20+",  v: "Clients de confiance" },
-              { k: "6",    v: "Secteurs d'activité" },
-              { k: "ONEE", v: "Agrément officiel BT/MT" },
-              { k: "Safi", v: "Siège social, Maroc" },
+              { k: "20+",  vKey: "home.stats.clients" },
+              { k: "6",    vKey: "home.stats.sectors" },
+              { k: "ONEE", vKey: "home.stats.cert" },
+              { k: "Safi", vKey: "home.stats.city" },
             ].map((s) => (
               <div key={s.k}>
                 <div
@@ -548,7 +554,7 @@ const Index = () => {
                 >
                   {s.k}
                 </div>
-                <div className={`mt-1 text-sm ${isDark ? "text-stone-400" : "text-stone-300"}`}>{s.v}</div>
+                <div className={`mt-1 text-sm ${isDark ? "text-stone-400" : "text-stone-300"}`}>{t(s.vKey)}</div>
               </div>
             ))}
           </div>
@@ -566,10 +572,10 @@ const Index = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold mb-6 text-khwarizmia-navy">
-              Confiez-nous votre projet
+              {t("home.cta.title")}
             </h2>
             <p className="text-xl text-stone-600 max-w-3xl mx-auto mb-8">
-              Qu'il s'agisse d'une installation électrique, d'un système d'automatisation, d'un réseau informatique ou d'une mise en service industrielle — l'équipe KSSI TECH vous accompagne de l'étude à la réception des travaux.
+              {t("home.cta.body")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -577,7 +583,7 @@ const Index = () => {
                 size="lg"
                 className="bg-khwarizmia-navy hover:bg-stone-800 text-khwarizmia-paper px-8 py-4 text-lg font-semibold rounded-lg transition-colors"
               >
-                Demander un devis
+                {t("home.cta.demo")}
               </Button>
               <Button
                 onClick={() => navigate("/contact-support")}
@@ -585,7 +591,7 @@ const Index = () => {
                 variant="outline"
                 className="bg-white text-khwarizmia-navy border-khwarizmia-navy/20 hover:bg-khwarizmia-paper px-8 py-6 text-lg font-semibold"
               >
-                Nous contacter
+                {t("home.cta.contact")}
               </Button>
             </div>
           </motion.div>
@@ -601,7 +607,7 @@ const Index = () => {
               <div className="bg-khwarizmia-teal/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-khwarizmia-bronze" />
               </div>
-              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">Téléphone</h3>
+              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">{t("home.contactInfo.phone")}</h3>
               <p className="text-stone-600 text-sm leading-relaxed">
                 <a href="tel:+212524622240" className="hover:text-khwarizmia-bronze transition-colors block">
                   +212 524 622 240
@@ -609,7 +615,7 @@ const Index = () => {
                 <a href="tel:+212661979129" className="hover:text-khwarizmia-bronze transition-colors block">
                   +212 661 979 129
                 </a>
-                <span className="text-stone-400 text-xs mt-1 block">Lun – Ven : 8h00 – 18h00</span>
+                <span className="text-stone-400 text-xs mt-1 block">{t("home.contactInfo.phoneHours")}</span>
               </p>
             </motion.div>
 
@@ -617,7 +623,7 @@ const Index = () => {
               <div className="bg-khwarizmia-teal/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-khwarizmia-bronze" />
               </div>
-              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">Email</h3>
+              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">{t("home.contactInfo.email")}</h3>
               <p className="text-stone-600 text-sm leading-relaxed">
                 <a
                   href="mailto:kssitech@gmail.com"
@@ -625,7 +631,7 @@ const Index = () => {
                 >
                   kssitech@gmail.com
                 </a>
-                <span className="text-stone-400 text-xs mt-1 block">Réponse sous 24h ouvrables</span>
+                <span className="text-stone-400 text-xs mt-1 block">{t("home.contactInfo.emailResponse")}</span>
               </p>
             </motion.div>
 
@@ -633,12 +639,12 @@ const Index = () => {
               <div className="bg-khwarizmia-teal/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-khwarizmia-bronze" />
               </div>
-              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">Siège Social</h3>
+              <h3 className="text-lg font-bold mb-2 text-khwarizmia-navy">{t("home.contactInfo.address")}</h3>
               <p className="text-stone-600 text-sm leading-relaxed">
-                59, rue 5, Qu. Lalla Asmae
+                {t("home.contactInfo.addressLine1")}
                 <br />
-                Bd Hassan II — Safi, Maroc
-                <span className="text-stone-400 text-xs mt-1 block">RC : 3595 | ICE : 000074736000019</span>
+                {t("home.contactInfo.addressLine2")}
+                <span className="text-stone-400 text-xs mt-1 block">{t("home.contactInfo.addressLegal")}</span>
               </p>
             </motion.div>
           </motion.div>

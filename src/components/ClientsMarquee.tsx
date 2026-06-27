@@ -91,6 +91,7 @@ const ClientsMarquee = () => {
 
   const maskImage =
     "linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)";
+  const scrollingClients = [...ROW_1, ...ROW_2];
 
   return (
     <div className="w-full pt-10 pb-2">
@@ -104,26 +105,13 @@ const ClientsMarquee = () => {
         Ils nous font confiance
       </p>
 
-      {/* Row 1 — left to right */}
-      <div
-        className="relative overflow-hidden mb-3"
-        style={{ maskImage, WebkitMaskImage: maskImage }}
-      >
-        <div className="flex w-max gap-3 animate-clients-ltr">
-          {[...ROW_1, ...ROW_1].map((c, i) => (
-            <ClientCard key={`r1-${i}`} {...c} isDark={isDark} />
-          ))}
-        </div>
-      </div>
-
-      {/* Row 2 — right to left */}
       <div
         className="relative overflow-hidden"
         style={{ maskImage, WebkitMaskImage: maskImage }}
       >
-        <div className="flex w-max gap-3 animate-clients-rtl">
-          {[...ROW_2, ...ROW_2].map((c, i) => (
-            <ClientCard key={`r2-${i}`} {...c} isDark={isDark} />
+        <div className="flex w-max gap-3 animate-clients-ltr">
+          {[...scrollingClients, ...scrollingClients].map((c, i) => (
+            <ClientCard key={`client-${i}`} {...c} isDark={isDark} />
           ))}
         </div>
       </div>
@@ -133,18 +121,10 @@ const ClientsMarquee = () => {
           from { transform: translateX(0); }
           to   { transform: translateX(-50%); }
         }
-        @keyframes clients-rtl {
-          from { transform: translateX(-50%); }
-          to   { transform: translateX(0); }
-        }
         .animate-clients-ltr {
           animation: clients-ltr 40s linear infinite;
         }
-        .animate-clients-rtl {
-          animation: clients-rtl 38s linear infinite;
-        }
-        .animate-clients-ltr:hover,
-        .animate-clients-rtl:hover {
+        .animate-clients-ltr:hover {
           animation-play-state: paused;
         }
       `}</style>
