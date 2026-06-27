@@ -150,7 +150,7 @@ const Dashboard: React.FC = () => {
   // ── UI state ──
   const [view,     setView]     = useState<DashView>('overview');
   const [filters,  setFilters]  = useState<Filters>(DEFAULT_FILTERS);
-  const [dashSection, setDashSection] = useState<'kpis' | 'charts' | 'forecast' | 'table' | 'excel' | 'ai'>('kpis');
+  const [dashSection, setDashSection] = useState<'kpis' | 'charts' | 'forecast' | 'table' | 'excel' | 'ai'>('excel');
   const [tab,      setTab]      = useState<TabKey>('all');
   const [sortCol,  setSortCol]  = useState<'client' | 'team' | 'offer' | 'planned_date' | '_status'>('planned_date');
   const [sortDir,  setSortDir]  = useState<'asc' | 'desc'>('asc');
@@ -169,6 +169,7 @@ const Dashboard: React.FC = () => {
   ]);
   const [aiInput, setAiInput] = useState('');
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
+  const [savedFiles, setSavedFiles] = useState<{ name: string; size: number; modified: number }[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null);
   const [projectPanelTab, setProjectPanelTab] = useState<'overview' | 'columns' | 'warnings'>('overview');
   const [selectedTeam, setSelectedTeam] = useState<TeamStats | null>(null);
@@ -182,6 +183,12 @@ const Dashboard: React.FC = () => {
     if (!chatScrollInit.current) { chatScrollInit.current = true; return; }
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMsgs]);
+
+  const fetchSavedFiles = useCallback(() => {
+    fetch('/api/uploads').then(r => r.json()).then(setSavedFiles).catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchSavedFiles(); }, [fetchSavedFiles]);
 
   // ── Process records ──
   const allProcessed = useMemo(() => processRecords(rawRecs), [rawRecs]);
@@ -262,9 +269,59 @@ const Dashboard: React.FC = () => {
     return { label: `${d} Méga`, count: c, pct: records.length ? Math.round(c / records.length * 100) : 0, width: Math.round(c / maxDeb * 100) + '%', color: debitColors[d] };
   }).filter(d => d.count > 0);
 
+  // ── Reload a file saved on disk ──
+  const reloadSavedFile = useCallback((name: string) => {
+    setLoading(true);
+    fetch(`/api/file/${encodeURIComponent(name)}`)
+      .then(r => r.arrayBuffer())
+      .then(buf => {
+        try {
+          const result = parseExcelBuffer(buf, name);
+          if (!result.canonical.length) { alert('Aucun enregistrement valide détecté.'); setLoading(false); return; }
+          setRawRecs(result.canonical);
+          setSchema(result.schema);
+          setCaps(result.caps);
+          setProfile(result.profile);
+          setFileName(name);
+          setFilters(DEFAULT_FILTERS);
+          setTab('all');
+          setPage(1);
+          setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
+          setShowSchema(true);
+          const _kpisCalc = computeKPIs(processRecords(result.canonical));
+          const newProject: ProjectRecord = {
+            id: Date.now().toString(),
+            fileName: name,
+            uploadedAt: Date.now(),
+            recordCount: result.canonical.length,
+            qualityScore: result.profile.qualityScore,
+            taux: _kpisCalc.taux,
+            teamCount: new Set(result.canonical.filter(r => r.team).map(r => r.team)).size,
+            records: result.canonical,
+            schema: result.schema,
+            caps: result.caps,
+            profile: result.profile,
+          };
+          setProjects(prev => [newProject, ...prev.filter(p => p.fileName !== name)]);
+          setChatMsgs(prev => [...prev, { role: 'ai', text: `✓ "${name}" rechargé depuis le disque — ${result.canonical.length} enregistrements.`, ts: nowTs() }]);
+          setDashSection('kpis');
+        } catch { alert('Impossible de lire ce fichier.'); }
+        setLoading(false);
+      })
+      .catch(() => { alert('Erreur lors du chargement du fichier.'); setLoading(false); });
+  }, []);
+
   // ── File ingestion ──
   const readFile = useCallback((file: File) => {
     setLoading(true);
+    // Save to disk (non-blocking)
+    file.arrayBuffer().then(buf => {
+      fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'x-filename': encodeURIComponent(file.name) },
+        body: buf,
+      }).then(() => fetchSavedFiles()).catch(() => {});
+    });
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
@@ -317,7 +374,7 @@ const Dashboard: React.FC = () => {
       setLoading(false);
     };
     reader.readAsArrayBuffer(file);
-  }, []);
+  }, [fetchSavedFiles]);
 
   const onFile     = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) readFile(f); }, [readFile]);
   const pickFile   = useCallback(() => fileRef.current?.click(), []);
@@ -1275,8 +1332,48 @@ const Dashboard: React.FC = () => {
                       </div>
                     )}
 
+                    {/* Saved files on disk */}
+                    {savedFiles.length > 0 && (
+                      <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 6px 20px rgba(30,35,60,.05)', overflow: 'hidden' }}>
+                        <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #f0f1f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize: 17, fontWeight: 800 }}>Fichiers sauvegardés</div>
+                            <div style={{ fontSize: 11.5, color: '#9398a8', fontWeight: 500, marginTop: 1 }}>Stockés dans le dossier <code style={{ background: '#f4f5f8', padding: '1px 6px', borderRadius: 5, fontSize: 11 }}>uploads/</code></div>
+                          </div>
+                          <button onClick={fetchSavedFiles} style={{ background: '#f4f5f8', border: 'none', color: '#6c7184', fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, cursor: 'pointer' }}>↺ Rafraîchir</button>
+                        </div>
+                        {savedFiles.map((f, i) => {
+                          const kb = Math.round(f.size / 1024);
+                          const date = new Date(f.modified).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+                          const time = new Date(f.modified).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                          const ext = f.name.split('.').pop()?.toLowerCase() || '';
+                          const extColor = ext === 'csv' ? '#16a06f' : '#5b8def';
+                          return (
+                            <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: i < savedFiles.length - 1 ? '1px solid #f3f4f8' : 'none' }}>
+                              <div style={{ width: 36, height: 36, borderRadius: 10, background: hexA(extColor, .12), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                                {ext === 'csv' ? '📄' : '📊'}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</div>
+                                <div style={{ fontSize: 11, color: '#9398a8', fontWeight: 500, marginTop: 2 }}>{kb} Ko · {date} à {time}</div>
+                              </div>
+                              <button onClick={() => reloadSavedFile(f.name)} disabled={loading}
+                                style={{ background: hexA(ACCENT, .1), border: 'none', color: ACCENT, fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 9, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                ▶ Charger
+                              </button>
+                              <button onClick={() => {
+                                fetch(`/api/delete/${encodeURIComponent(f.name)}`, { method: 'DELETE' })
+                                  .then(() => fetchSavedFiles()).catch(() => {});
+                              }}
+                                style={{ width: 30, height: 30, borderRadius: 8, background: '#fdecec', border: 'none', color: '#e0564f', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>🗑</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {/* Empty state */}
-                    {projects.length === 0 && (
+                    {projects.length === 0 && savedFiles.length === 0 && (
                       <div style={{ ...card, textAlign: 'center', padding: '36px 24px' }}>
                         <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: '#1d2030', marginBottom: 6 }}>Aucun projet analysé</div>

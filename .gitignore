@@ -25,3 +25,8 @@ dist-ssr
 
 # XSigma Visual Monitor MCP Server
 ../xsigma-visual-monitor-mcp/
+
+# Uploaded data files (tracked locally, not in git)
+uploads/*.xlsx
+uploads/*.xls
+uploads/*.csv
