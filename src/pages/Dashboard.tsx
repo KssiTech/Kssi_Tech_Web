@@ -997,7 +997,13 @@ const Dashboard: React.FC = () => {
           )}
 
           {/* ── FILTERS BAR ── */}
-          <FiltersBar filters={filters} onChange={f => { setFilters(f); setPage(1); }} records={allProcessed} />
+          <FiltersBar
+            filters={filters}
+            onChange={f => { setFilters(f); setPage(1); }}
+            records={allProcessed}
+            filteredCount={records.length}
+            totalCount={allProcessed.length}
+          />
 
           {/* ── DRILL-DOWN BANNER ── */}
           {hasDrill && (
@@ -1047,18 +1053,18 @@ const Dashboard: React.FC = () => {
                 <div style={{ height: 1, background: '#f0f1f5', margin: '8px 6px' }} />
 
                 {([
-                  { key: 'kpis',      label: 'KPIs',         icon: '📊' },
-                  { key: 'charts',    label: 'Graphiques',   icon: '📈' },
-                  { key: 'forecast',  label: 'Prévisions',   icon: '🔮' },
-                  { key: 'table',     label: 'Tableau',      icon: '📋' },
-                  { key: 'universal', label: 'Analyse IA',   icon: '🔬' },
-                ] as { key: string; label: string; icon: string }[]).map(s => {
+                  { key: 'kpis',      label: 'KPIs'       },
+                  { key: 'charts',    label: 'Graphiques' },
+                  { key: 'forecast',  label: 'Prévisions' },
+                  { key: 'table',     label: 'Tableau'    },
+                  { key: 'universal', label: 'Analyse IA' },
+                ] as { key: string; label: string }[]).map(s => {
                   const dashSectionTyped = dashSection as string;
                   const active = dashSectionTyped === s.key;
                   return (
                     <div key={s.key} onClick={() => setDashSection(s.key as typeof dashSection)}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 10,
+                        display: 'flex', alignItems: 'center',
                         padding: '11px 14px', borderRadius: 14, cursor: 'pointer',
                         background: active ? (s.key === 'universal' ? '#6c5ce615' : '#f0f1f5') : 'transparent',
                         color: active ? (s.key === 'universal' ? '#6c5ce6' : '#1d2030') : '#6c7184',
@@ -1068,8 +1074,7 @@ const Dashboard: React.FC = () => {
                       onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = '#f7f8fa'; }}
                       onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
                     >
-                      <span style={{ fontSize: 14 }}>{s.icon}</span>
-                      <span>{s.label}</span>
+                      {s.label}
                     </div>
                   );
                 })}

@@ -8,6 +8,8 @@ interface FiltersBarProps {
   filters: Filters;
   onChange: (f: Filters) => void;
   records: ProcessedRecord[];
+  filteredCount?: number;
+  totalCount?: number;
 }
 
 const sel: React.CSSProperties = {
@@ -41,7 +43,7 @@ const inp: React.CSSProperties = {
   minWidth: 180,
 };
 
-export const FiltersBar: React.FC<FiltersBarProps> = ({ filters, onChange, records }) => {
+export const FiltersBar: React.FC<FiltersBarProps> = ({ filters, onChange, records, filteredCount, totalCount }) => {
   const set = (k: keyof Filters) => (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
     onChange({ ...filters, [k]: e.target.value });
 
@@ -173,11 +175,30 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({ filters, onChange, recor
         </button>
       )}
 
-      {hasActiveFilters && (
-        <div style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 600, color: '#6c5ce6', background: '#eceafe', padding: '5px 12px', borderRadius: 8 }}>
-          Filtres actifs
-        </div>
-      )}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        {filteredCount !== undefined && totalCount !== undefined && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            background: hasActiveFilters ? '#eceafe' : '#f4f5f8',
+            borderRadius: 10, padding: '5px 12px',
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: hasActiveFilters ? '#6c5ce6' : '#1d2030' }}>
+              {filteredCount}
+            </span>
+            {hasActiveFilters && totalCount !== filteredCount && (
+              <span style={{ fontSize: 12, fontWeight: 500, color: '#9398a8' }}>/ {totalCount}</span>
+            )}
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: hasActiveFilters ? '#6c5ce6' : '#9398a8' }}>
+              demandes
+            </span>
+          </div>
+        )}
+        {hasActiveFilters && (
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: '#6c5ce6', background: '#eceafe', padding: '5px 10px', borderRadius: 8 }}>
+            Filtres actifs
+          </div>
+        )}
+      </div>
     </div>
   );
 };
