@@ -329,6 +329,47 @@ export function extractRawRecords(buffer: ArrayBuffer, schema: SchemaDetectionRe
   return all;
 }
 
+// ─── Universal raw extraction (for any Excel file) ───────────────────────────
+
+/**
+ * Extract headers and data rows from the first sheet of a workbook,
+ * preserving all columns regardless of FTTH field mappings.
+ * Used by the universal profiler to analyze any Excel file.
+ */
+export function extractRawSheetData(buffer: ArrayBuffer): { headers: string[]; rows: string[][] } {
+  const wb = XLSX.read(buffer, { type: 'array', cellDates: false });
+  const sheetName = wb.SheetNames[0];
+  if (!sheetName) return { headers: [], rows: [] };
+
+  const ws = wb.Sheets[sheetName];
+  const allRows = XLSX.utils.sheet_to_json<string[]>(ws, {
+    header: 1, raw: false, defval: '',
+  }) as string[][];
+
+  if (!allRows.length) return { headers: [], rows: [] };
+
+  const headerRowIdx = findHeaderRow(allRows);
+  const rawHeader = allRows[headerRowIdx];
+
+  // Keep only columns that have a non-empty header
+  const colIndices: number[] = [];
+  const headers: string[] = [];
+  rawHeader.forEach((h, i) => {
+    const trimmed = String(h || '').trim();
+    if (trimmed.length > 0) {
+      colIndices.push(i);
+      headers.push(trimmed);
+    }
+  });
+
+  const rows = allRows
+    .slice(headerRowIdx + 1)
+    .filter(row => row.some(c => String(c || '').trim().length > 0))
+    .map(row => colIndices.map(i => String(row[i] ?? '').trim()));
+
+  return { headers, rows };
+}
+
 // ─── Default "virtual" schema for demo data ───────────────────────────────────
 // This lets the demo data flow through the same processing pipeline as real files.
 

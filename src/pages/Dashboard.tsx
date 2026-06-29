@@ -31,6 +31,8 @@ import {
 import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { InsightCards } from '@/components/dashboard/InsightCards';
 import { SchemaPanel } from '@/components/dashboard/SchemaPanel';
+import { UniversalDashboard } from '@/components/dashboard/UniversalDashboard';
+import type { UniversalDatasetProfile } from '@/hooks/useExcelData';
 
 // ─── Demo dataset (as CanonicalRecord[]) ─────────────────────────────────────
 
@@ -138,10 +140,11 @@ const Dashboard: React.FC = () => {
   const { signOut, user } = useAuth();
 
   // ── Data state ──
-  const [rawRecs,   setRawRecs]   = useState<CanonicalRecord[]>(DEFAULT_RECORDS);
-  const [schema,    setSchema]    = useState<SchemaDetectionResult>(DEFAULT_SCHEMA);
-  const [caps,      setCaps]      = useState<DataCapabilities>(DEFAULT_CAPABILITIES);
-  const [profile,   setProfile]   = useState<DataProfile | null>(null);
+  const [rawRecs,         setRawRecs]         = useState<CanonicalRecord[]>(DEFAULT_RECORDS);
+  const [schema,          setSchema]          = useState<SchemaDetectionResult>(DEFAULT_SCHEMA);
+  const [caps,            setCaps]            = useState<DataCapabilities>(DEFAULT_CAPABILITIES);
+  const [profile,         setProfile]         = useState<DataProfile | null>(null);
+  const [universalProfile, setUniversalProfile] = useState<UniversalDatasetProfile | null>(null);
   const [fileName,  setFileName]  = useState('');
   const [dragging,  setDragging]  = useState(false);
   const [loading,   setLoading]   = useState(false);
@@ -282,12 +285,13 @@ const Dashboard: React.FC = () => {
           setSchema(result.schema);
           setCaps(result.caps);
           setProfile(result.profile);
+          setUniversalProfile(result.universalProfile);
           setFileName(name);
           setFilters(DEFAULT_FILTERS);
           setTab('all');
           setPage(1);
           setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
-          setShowSchema(true);
+          setShowSchema(false);
           const _kpisCalc = computeKPIs(processRecords(result.canonical));
           const newProject: ProjectRecord = {
             id: Date.now().toString(),
@@ -337,12 +341,13 @@ const Dashboard: React.FC = () => {
         setSchema(result.schema);
         setCaps(result.caps);
         setProfile(result.profile);
+        setUniversalProfile(result.universalProfile);
         setFileName(file.name);
         setFilters(DEFAULT_FILTERS);
         setTab('all');
         setPage(1);
         setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
-        setShowSchema(true);
+        setShowSchema(false);
         setDashSection('excel');
         const _kpisCalc = computeKPIs(processRecords(result.canonical));
         const newProject: ProjectRecord = {
@@ -1042,25 +1047,28 @@ const Dashboard: React.FC = () => {
                 <div style={{ height: 1, background: '#f0f1f5', margin: '8px 6px' }} />
 
                 {([
-                  { key: 'kpis',     label: 'KPIs' },
-                  { key: 'charts',   label: 'Graphiques' },
-                  { key: 'forecast', label: 'Prévisions' },
-                  { key: 'table',    label: 'Tableau' },
-                ] as { key: typeof dashSection; label: string }[]).map(s => {
-                  const active = dashSection === s.key;
+                  { key: 'kpis',      label: 'KPIs',         icon: '📊' },
+                  { key: 'charts',    label: 'Graphiques',   icon: '📈' },
+                  { key: 'forecast',  label: 'Prévisions',   icon: '🔮' },
+                  { key: 'table',     label: 'Tableau',      icon: '📋' },
+                  { key: 'universal', label: 'Analyse IA',   icon: '🔬' },
+                ] as { key: string; label: string; icon: string }[]).map(s => {
+                  const dashSectionTyped = dashSection as string;
+                  const active = dashSectionTyped === s.key;
                   return (
-                    <div key={s.key} onClick={() => setDashSection(s.key)}
+                    <div key={s.key} onClick={() => setDashSection(s.key as typeof dashSection)}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 12,
+                        display: 'flex', alignItems: 'center', gap: 10,
                         padding: '11px 14px', borderRadius: 14, cursor: 'pointer',
-                        background: active ? '#f0f1f5' : 'transparent',
-                        color: active ? '#1d2030' : '#6c7184',
-                        fontWeight: active ? 700 : 600, fontSize: 14,
+                        background: active ? (s.key === 'universal' ? '#6c5ce615' : '#f0f1f5') : 'transparent',
+                        color: active ? (s.key === 'universal' ? '#6c5ce6' : '#1d2030') : '#6c7184',
+                        fontWeight: active ? 700 : 600, fontSize: 13,
                         transition: 'all .15s', userSelect: 'none',
                       }}
                       onMouseEnter={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = '#f7f8fa'; }}
                       onMouseLeave={e => { if (!active) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
                     >
+                      <span style={{ fontSize: 14 }}>{s.icon}</span>
                       <span>{s.label}</span>
                     </div>
                   );
@@ -1330,7 +1338,23 @@ const Dashboard: React.FC = () => {
                           const isActive = selectedProject?.id === p.id;
                           return (
                             <div key={p.id}
-                              onClick={() => { setSelectedProject(p); setProjectPanelTab('overview'); }}
+                              onClick={() => {
+                                // Load this project's data into the active state
+                                setRawRecs(p.records);
+                                setSchema(p.schema);
+                                setCaps(p.caps);
+                                setProfile(p.profile);
+                                setFileName(p.fileName);
+                                setFilters(DEFAULT_FILTERS);
+                                setTab('all');
+                                setPage(1);
+                                setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
+                                // Show the schema panel
+                                setShowSchema(true);
+                                // Open the project detail side panel
+                                setSelectedProject(p);
+                                setProjectPanelTab('overview');
+                              }}
                               style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr 0.7fr 0.7fr 0.7fr 0.9fr', gap: 10, padding: '13px 20px', alignItems: 'center', borderBottom: i < projects.length - 1 ? '1px solid #f3f4f8' : 'none', cursor: 'pointer', background: isActive ? hexA(ACCENT, .04) : 'transparent', borderLeft: `3px solid ${isActive ? ACCENT : 'transparent'}`, transition: 'all .12s' }}
                               onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = '#fafbfc'; }}
                               onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
@@ -1413,6 +1437,21 @@ const Dashboard: React.FC = () => {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* ─── SECTION: Universal Analysis ─── */}
+                {(dashSection as string) === 'universal' && (
+                  universalProfile
+                    ? <UniversalDashboard profile={universalProfile} fileName={fileName || 'Données'} />
+                    : (
+                      <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                        <div style={{ fontSize: 36, marginBottom: 14 }}>🔬</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#1d2030', marginBottom: 8 }}>Importez un fichier Excel</div>
+                        <div style={{ fontSize: 13, color: '#9398a8', maxWidth: 340, margin: '0 auto' }}>
+                          L'analyse universelle se lance automatiquement dès qu'un fichier est importé. Elle fonctionne avec n'importe quelle structure de données.
+                        </div>
+                      </div>
+                    )
                 )}
 
               </div>

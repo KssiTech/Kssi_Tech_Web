@@ -1,6 +1,8 @@
 import * as XLSX from 'xlsx';
-import { detectSchema, extractRawRecords, DEFAULT_SCHEMA } from '@/lib/schemaDetector';
+import { detectSchema, extractRawRecords, extractRawSheetData, DEFAULT_SCHEMA } from '@/lib/schemaDetector';
 import type { SchemaDetectionResult, RawRecord } from '@/lib/schemaDetector';
+import { profileDataset } from '@/lib/universalProfiler';
+import type { UniversalDatasetProfile } from '@/lib/universalProfiler';
 import { STATUS_RULES, UNREACHABLE_PATTERNS } from '@/config/statusKeywords';
 import { profileData, computeCapabilities } from '@/lib/dataProfiler';
 import type {
@@ -547,11 +549,14 @@ export function buildWeekdayHeatmap(records: ProcessedRecord[]) {
 // ─── Excel file ingestion ─────────────────────────────────────────────────────
 
 export interface ParseResult {
-  canonical:  CanonicalRecord[];
-  schema:     SchemaDetectionResult;
-  profile:    DataProfile;
-  caps:       DataCapabilities;
+  canonical:       CanonicalRecord[];
+  schema:          SchemaDetectionResult;
+  profile:         DataProfile;
+  caps:            DataCapabilities;
+  universalProfile: UniversalDatasetProfile;
 }
+
+export type { UniversalDatasetProfile };
 
 export function parseExcelBuffer(
   buffer:   ArrayBuffer,
@@ -572,7 +577,11 @@ export function parseExcelBuffer(
   const caps    = computeCapabilities(schema);
   const profile = profileData(canonical, schema, fileName);
 
-  return { canonical, schema, profile, caps };
+  // 5. Universal profiling (works with any column structure)
+  const { headers, rows } = extractRawSheetData(buffer);
+  const universalProfile = profileDataset(headers, rows);
+
+  return { canonical, schema, profile, caps, universalProfile };
 }
 
 // ─── AI assistant (schema-aware) ──────────────────────────────────────────────
