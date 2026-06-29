@@ -135,7 +135,7 @@ interface ProjectRecord {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   // ── Data state ──
   const [rawRecs,   setRawRecs]   = useState<CanonicalRecord[]>(DEFAULT_RECORDS);
@@ -948,9 +948,41 @@ const Dashboard: React.FC = () => {
               <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(30,35,60,.06)', color: '#6c7184', cursor: 'pointer', position: 'relative' }}>
                 🔔<span style={{ position: 'absolute', top: 8, right: 10, width: 7, height: 7, background: '#ef5b54', borderRadius: '50%', border: '1.5px solid #fff' }} />
               </div>
+              <a href="https://wa.me/212661979129" target="_blank" rel="noopener noreferrer"
+                style={{ padding: '8px 14px', borderRadius: 10, background: '#dcfce7', color: '#16a34a', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}>
+                💬 WhatsApp
+              </a>
               <div onClick={() => { signOut(); navigate('/login'); }} style={{ padding: '8px 14px', borderRadius: 10, background: '#f4f5f8', color: '#6c7184', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>✕</div>
             </div>
           </div>
+
+          {/* ── WELCOME BANNER ── */}
+          {user && (() => {
+            const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'utilisateur';
+            const firstName = String(fullName).split(' ')[0];
+            const role: string = (user.user_metadata?.role as string) || 'user';
+            const roleLabels: Record<string, string> = { directeur: 'Directeur', secretaire: 'Secrétaire', client: 'Client' };
+            const roleColors: Record<string, string> = { directeur: '#059669', secretaire: '#1E5FA8', client: '#D97706' };
+            const roleLabel = roleLabels[role] || role;
+            const roleColor = roleColors[role] || '#6c7184';
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '12px 16px', borderRadius: 14, background: '#f8f9fc', border: '1px solid #eef0f4' }}>
+                <div style={{ fontSize: 22 }}>👋</div>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1d2030' }}>
+                    Bonjour, <span style={{ color: '#15171f' }}>{firstName}</span> !
+                  </div>
+                  <div style={{ fontSize: 12, color: '#9398a8', fontWeight: 500, marginTop: 1 }}>
+                    Connecté en tant que{' '}
+                    <span style={{ fontWeight: 700, color: roleColor, background: roleColor + '14', padding: '1px 8px', borderRadius: 5 }}>
+                      {roleLabel}
+                    </span>
+                    {' '}— Bienvenue sur votre tableau de bord KSSI TECH.
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ── SCHEMA PANEL (collapsible) ── */}
           {showSchema && profile && (
@@ -1385,13 +1417,22 @@ const Dashboard: React.FC = () => {
 
               </div>
 
-              {/* ── RIGHT COLUMN: AI Chat (always visible) ── */}
+              {/* ── RIGHT COLUMN: AI Chat + Team Contact ── */}
               <div style={{
                 position: 'sticky', top: 20,
+                display: 'flex', flexDirection: 'column',
+                gap: 10,
+                maxHeight: 'calc(100vh - 80px)',
+                overflowY: 'auto',
+              }}>
+
+              {/* AI Chat Box */}
+              <div style={{
                 background: 'linear-gradient(160deg,#eef0ff 0%,#f3effb 55%,#eef6ff 100%)',
                 borderRadius: 20, overflow: 'hidden',
                 display: 'flex', flexDirection: 'column',
-                maxHeight: 'calc(100vh - 80px)',
+                flex: '1 1 auto',
+                minHeight: 320,
                 boxShadow: '0 6px 20px rgba(30,35,60,.07)',
               }}>
                 {/* Header */}
@@ -1455,6 +1496,106 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+              {/* ── END AI Chat Box ── */}
+
+              {/* ── TEAM CONTACT WIDGET ── */}
+              <div style={{
+                background: '#fff',
+                borderRadius: 20,
+                padding: '16px 14px',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(30,35,60,.06)',
+                border: '1px solid #f0f1f5',
+              }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 9.5, color: '#6c7184', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: 1.5 }}>Contact équipe</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: -.3, marginTop: 1, color: '#1d2030' }}>Messagerie interne</div>
+                  </div>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: '#e4f7ef', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>💬</div>
+                </div>
+
+                {/* Team members */}
+                {[
+                  { name: 'Mohammed El Fassi', role: 'Directeur',  initials: 'ME', color: '#059669', available: true },
+                  { name: 'Aicha Benmoussa',   role: 'Secrétaire', initials: 'AB', color: '#1E5FA8', available: true },
+                ].map((member, i) => (
+                  <div key={i}
+                    onClick={() => navigate('/inbox')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 10px', borderRadius: 13,
+                      cursor: 'pointer', marginBottom: 6,
+                      background: '#f8f9fc',
+                      transition: 'background .12s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = '#eef0f4'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = '#f8f9fc'}
+                  >
+                    {/* Avatar with status dot */}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 11,
+                        background: member.color + '18', color: member.color,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 11, fontWeight: 800,
+                      }}>
+                        {member.initials}
+                      </div>
+                      <div style={{
+                        position: 'absolute', bottom: -1, right: -1,
+                        width: 10, height: 10, borderRadius: '50%',
+                        background: member.available ? '#16a06f' : '#e0564f',
+                        border: '2px solid #fff',
+                      }} />
+                    </div>
+
+                    {/* Name + role */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: '#1d2030', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {member.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9398a8', fontWeight: 500 }}>{member.role}</div>
+                    </div>
+
+                    {/* Availability + arrow */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700,
+                        color: member.available ? '#16a06f' : '#e0564f',
+                        background: member.available ? '#e4f7ef' : '#fdecec',
+                        padding: '2px 7px', borderRadius: 6,
+                      }}>
+                        {member.available ? 'En ligne' : 'Absent'}
+                      </span>
+                      <span style={{ color: '#c2c6d2', fontSize: 16, lineHeight: 1 }}>›</span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* CTA button */}
+                <button
+                  onClick={() => navigate('/inbox')}
+                  style={{
+                    width: '100%', marginTop: 6,
+                    padding: '10px 0', borderRadius: 13,
+                    background: '#15171f', color: '#caa35e',
+                    fontSize: 12.5, fontWeight: 700,
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                    transition: 'background .15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#1d2030'}
+                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = '#15171f'}
+                >
+                  Ouvrir la messagerie <span style={{ fontSize: 14 }}>→</span>
+                </button>
+              </div>
+              {/* ── END TEAM CONTACT WIDGET ── */}
+
+              </div>
+              {/* ── END RIGHT COLUMN ── */}
 
             </div>
           )}

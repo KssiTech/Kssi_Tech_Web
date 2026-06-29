@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Menu, Moon, Search, Sun, User, Globe } from "lucide-react";
+import { Menu, Moon, Search, Sun, Globe } from "lucide-react";
+import ProfileDropdown from "./ProfileDropdown";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +22,7 @@ const Navigation = () => {
   const searchRef = useRef<HTMLInputElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
 
@@ -88,18 +89,8 @@ const Navigation = () => {
       >
         <div className="px-5 h-[62px] grid grid-cols-3 items-center gap-4">
 
-          {/* LEFT — user icon + pill nav buttons */}
+          {/* LEFT — pill nav buttons */}
           <div className="flex items-center gap-2">
-            <motion.button
-              onClick={() => navigate(user ? "/dashboard" : "/contact?mode=signin")}
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.94 }}
-              className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all ${iconButtonClasses}`}
-              aria-label="User account"
-            >
-              <User className="w-[15px] h-[15px]" />
-            </motion.button>
-
             <div className="hidden lg:flex items-center gap-1.5">
               {navItems.map((item) => (
                 <motion.button
@@ -206,15 +197,8 @@ const Navigation = () => {
               {isDark ? <Sun className="w-[15px] h-[15px]" /> : <Moon className="w-[15px] h-[15px]" />}
             </motion.button>
 
-            {/* Login / Dashboard */}
-            <motion.button
-              onClick={() => navigate(user ? "/dashboard" : "/contact?mode=signin")}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className={`hidden md:block px-4 py-[7px] rounded-full text-[11px] font-bold transition-all ${loginButtonClasses}`}
-            >
-              {user ? t("nav.dashboard") : t("nav.login")}
-            </motion.button>
+            {/* Profile dropdown / Login */}
+            <ProfileDropdown />
 
             {/* Mobile menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -280,13 +264,37 @@ const Navigation = () => {
                   </button>
 
                   {/* CTA */}
-                  <motion.button
-                    onClick={() => { setIsMobileMenuOpen(false); navigate(user ? "/dashboard" : "/contact?mode=signin"); }}
-                    whileTap={{ scale: 0.97 }}
-                    className={`w-full mt-3 py-3 rounded-xl font-bold text-sm transition-all ${sheetCtaClasses}`}
-                  >
-                    {user ? t("nav.dashboard") : t("nav.login")}
-                  </motion.button>
+                  {user ? (
+                    <div className="mt-3 space-y-2">
+                      <button
+                        onClick={() => { setIsMobileMenuOpen(false); navigate("/account"); }}
+                        className={`w-full py-2.5 rounded-xl font-medium text-sm transition-all ${sheetLinkClasses}`}
+                      >
+                        Mon profil
+                      </button>
+                      <motion.button
+                        onClick={() => { setIsMobileMenuOpen(false); navigate("/dashboard"); }}
+                        whileTap={{ scale: 0.97 }}
+                        className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${sheetCtaClasses}`}
+                      >
+                        {t("nav.dashboard")}
+                      </motion.button>
+                      <button
+                        onClick={async () => { setIsMobileMenuOpen(false); await signOut(); navigate("/"); }}
+                        className="w-full py-2.5 rounded-xl font-medium text-sm transition-all text-red-400 hover:bg-red-500/10"
+                      >
+                        Se déconnecter
+                      </button>
+                    </div>
+                  ) : (
+                    <motion.button
+                      onClick={() => { setIsMobileMenuOpen(false); navigate("/login"); }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`w-full mt-3 py-3 rounded-xl font-bold text-sm transition-all ${sheetCtaClasses}`}
+                    >
+                      {t("nav.login")}
+                    </motion.button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

@@ -34,7 +34,6 @@ import Awards from "./pages/news/Awards";
 import IndustryInsights from "./pages/news/IndustryInsights";
 import Newsletter from "./pages/news/Newsletter";
 // Download pages
-import InstallationGuide from "./pages/downloads/InstallationGuide";
 import InstallationGuidePage from "./pages/InstallationGuide";
 import UserManual from "./pages/downloads/UserManual";
 import DeveloperGuide from "./pages/downloads/DeveloperGuide";
@@ -98,7 +97,7 @@ const App = () => {
                       <Route path="/register-interest" element={<RegisterInterest />} />
                       <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                       {/* Download routes */}
-                      <Route path="/downloads/installation-guide" element={<InstallationGuide />} />
+                      <Route path="/downloads/installation-guide" element={<InstallationGuidePage />} />
                       <Route path="/downloads/user-manual" element={<UserManual />} />
                       <Route path="/downloads/developer-guide" element={<DeveloperGuide />} />
                       <Route path="/downloads/tutorials" element={<Tutorials />} />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { ArrowRight, Users, Zap, Target, Shield, Wifi, Sun, Wrench, Eye, Activity } from 'lucide-react';
+import { ArrowRight, Users, Zap, Target, Shield, Wifi, Sun, Wrench, Eye, Activity, Award, CheckCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -95,6 +95,47 @@ const About: React.FC = () => {
           </div>
         </section>
 
+        {/* ONEE Certification Banner */}
+        <section className="py-10 bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 border-b border-amber-200/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="flex flex-wrap items-center justify-center gap-8 text-center md:text-left"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-khwarizmia-navy flex items-center justify-center shadow-lg flex-shrink-0">
+                  <Award className="w-7 h-7 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-700 mb-0.5">Certification officielle</p>
+                  <p className="text-lg font-extrabold text-khwarizmia-navy">Agréé ONEE — BT &amp; MT</p>
+                </div>
+              </div>
+              <div className="hidden md:block w-px h-12 bg-amber-200" />
+              {[
+                { value: "20+", label: "Clients actifs" },
+                { value: "6",   label: "Secteurs d'expertise" },
+                { value: "Safi", label: "Maroc" },
+              ].map(({ value, label }) => (
+                <div key={value} className="text-center">
+                  <p className="text-2xl font-extrabold text-khwarizmia-navy">{value}</p>
+                  <p className="text-xs text-amber-700 font-semibold uppercase tracking-wide mt-0.5">{label}</p>
+                </div>
+              ))}
+              <div className="hidden md:block w-px h-12 bg-amber-200" />
+              <div className="flex flex-wrap gap-2">
+                {["SARL", "RC : 3595", "ICE : 000074736000019"].map(item => (
+                  <span key={item} className="flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-100 px-3 py-1.5 rounded-full">
+                    <CheckCircle className="w-3.5 h-3.5" /> {item}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
         {/* Qui sommes-nous */}
         <section className="py-20 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,6 +165,57 @@ const About: React.FC = () => {
                 </div>
               </motion.div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Timeline */}
+        <section className="py-20 bg-card/50 border-y border-border">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-14">
+              <h2 className="text-4xl font-bold text-foreground mb-4">Notre parcours</h2>
+              <p className="text-xl text-muted-foreground">Les grandes étapes qui ont façonné KSSI TECH.</p>
+            </motion.div>
+
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute left-1/2 -translate-x-0.5 top-0 bottom-0 w-px bg-border hidden md:block" />
+
+              <div className="space-y-10">
+                {[
+                  { year: "2015", title: "Création de KSSI TECH", body: "Fondation de la société à Safi, spécialisée dans les services électriques industriels et tertiaires.", side: "left" },
+                  { year: "2016", title: "Certification ONEE BT/MT", body: "Obtention de l'agrément Office National de l'Électricité pour les installations basse et moyenne tension.", side: "right" },
+                  { year: "2019", title: "Expansion multi-secteurs", body: "Élargissement vers l'automatisation, la vidéosurveillance et les réseaux informatiques.", side: "left" },
+                  { year: "2021", title: "Énergie solaire", body: "Déploiement des premières centrales photovoltaïques pour clients industriels et institutionnels.", side: "right" },
+                  { year: "2024", title: "20+ clients actifs", body: "KSSI TECH compte plus de 20 clients réguliers dans la région Safi-Doukkala.", side: "left" },
+                ].map(({ year, title, body, side }, i) => (
+                  <motion.div
+                    key={year}
+                    initial={{ opacity: 0, x: side === "left" ? -30 : 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className={`relative flex flex-col md:flex-row items-start gap-6 ${side === "right" ? "md:flex-row-reverse" : ""}`}
+                  >
+                    {/* Content */}
+                    <div className={`md:w-[calc(50%-28px)] ${side === "right" ? "md:text-right" : ""}`}>
+                      <div className={`p-5 rounded-2xl border bg-card shadow-sm hover:shadow-md transition-shadow ${side === "right" ? "md:mr-0" : ""}`}>
+                        <span className="text-xs font-bold uppercase tracking-[0.15em] text-khwarizmia-teal">{year}</span>
+                        <h3 className="text-base font-bold text-foreground mt-1 mb-2">{title}</h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
+                      </div>
+                    </div>
+
+                    {/* Dot */}
+                    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-khwarizmia-teal/20 border-2 border-khwarizmia-teal items-center justify-center top-5">
+                      <div className="w-2 h-2 rounded-full bg-khwarizmia-teal" />
+                    </div>
+
+                    {/* Spacer */}
+                    <div className="hidden md:block md:w-[calc(50%-28px)]" />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 

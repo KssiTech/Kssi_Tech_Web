@@ -3,10 +3,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 type DemoUser = { email: string; name: string; role: string; badge: string; color: string; desc: string };
+
 const DEMO_USERS: DemoUser[] = [
-  { email: 'secretaire@kssitech.ma', name: 'Aicha Benmoussa', role: 'Secrétaire',  badge: '✉', color: '#6c5ce6', desc: 'Répond aux clients, gère les messages' },
-  { email: 'directeur@kssitech.ma',  name: 'Mohammed El Fassi',role: 'Directeur',  badge: '👔', color: '#16a06f', desc: 'Lecture seule de toutes les conversations' },
-  { email: 'client@kssitech.ma',     name: 'Ahmed TAZI',       role: 'Client',     badge: '👤', color: '#5b8def', desc: 'Envoie des messages à la secrétaire' },
+  { email: 'secretaire@kssitech.ma', name: 'Aicha Benmoussa',    role: 'Secrétaire', badge: '✉',  color: '#1E5FA8', desc: 'Répond aux clients, gère les messages' },
+  { email: 'directeur@kssitech.ma',  name: 'Mohammed El Fassi', role: 'Directeur',  badge: '👔', color: '#059669', desc: 'Lecture seule de toutes les conversations' },
+  { email: 'client@kssitech.ma',     name: 'Ahmed TAZI',         role: 'Client',     badge: '👤', color: '#D97706', desc: 'Envoie des messages à la secrétaire' },
 ];
 
 const Login: React.FC = () => {
@@ -20,7 +21,8 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); setLoading(true);
+    setError('');
+    setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
     if (error) {
@@ -31,92 +33,147 @@ const Login: React.FC = () => {
     }
   };
 
-  const fill = (u: DemoUser) => { setEmail(u.email); setPassword('kssi2024'); setError(''); };
-
-  const S: Record<string,React.CSSProperties> = {
-    page:  {minHeight:'100vh',background:'#eef0f4',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif",padding:24},
-    wrap:  {width:'100%',maxWidth:860,display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,alignItems:'start'},
-    card:  {background:'#fff',borderRadius:22,boxShadow:'0 8px 30px rgba(30,35,60,.08)',padding:'32px 30px'},
-    label: {display:'block',fontSize:12,fontWeight:700,color:'#4a4f63',marginBottom:7,textTransform:'uppercase' as const,letterSpacing:.5},
-    input: {width:'100%',padding:'11px 14px',borderRadius:11,border:'1.5px solid #e4e6ef',fontSize:14,fontWeight:500,color:'#1d2030',background:'#f8f9fc',outline:'none',boxSizing:'border-box' as const},
-    btn:   {width:'100%',marginTop:4,padding:13,borderRadius:13,background:'#6c5ce6',color:'#fff',fontSize:14,fontWeight:700,border:'none',cursor:'pointer',boxShadow:'0 6px 18px rgba(108,92,230,.35)'},
+  const fill = (u: Pick<DemoUser, 'email' | 'color'> & Partial<DemoUser>) => {
+    setEmail(u.email);
+    setPassword('kssi2024');
+    setError('');
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.wrap}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-6">
+      <div className="w-full max-w-3xl">
 
-        {/* Left — login form */}
-        <div style={S.card}>
-          <div style={{textAlign:'center',marginBottom:28}}>
-            <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:50,height:50,borderRadius:14,background:'#15171f',boxShadow:'0 8px 20px rgba(20,22,30,.25)',marginBottom:12}}>
-              <span style={{fontSize:20,fontWeight:900,color:'#caa35e'}}>K</span>
-            </div>
-            <div style={{fontSize:21,fontWeight:800,color:'#1d2030',letterSpacing:-.3}}>KSSI<span style={{color:'#caa35e'}}> Tech</span></div>
-            <div style={{fontSize:12.5,color:'#9398a8',fontWeight:500,marginTop:3}}>Tableau de bord · Suivi FTTH</div>
+        {/* Brand header */}
+        <div className="text-center mb-7">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#0A1628] shadow-xl mb-3">
+            <span className="text-xl font-black" style={{ color: '#caa35e' }}>K</span>
           </div>
-
-          <h1 style={{fontSize:19,fontWeight:800,color:'#1d2030',margin:'0 0 5px',letterSpacing:-.3}}>Connexion</h1>
-          <p style={{fontSize:13,color:'#9398a8',fontWeight:500,margin:'0 0 22px'}}>Entrez vos identifiants ou choisissez un profil ci-contre.</p>
-
-          <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:14}}>
-            <div>
-              <label style={S.label}>E-mail</label>
-              <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required
-                placeholder="votre@email.com" style={S.input}
-                onFocus={e=>(e.target.style.borderColor='#6c5ce6')} onBlur={e=>(e.target.style.borderColor='#e4e6ef')}/>
-            </div>
-            <div>
-              <label style={S.label}>Mot de passe</label>
-              <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required
-                placeholder="••••••••" style={S.input}
-                onFocus={e=>(e.target.style.borderColor='#6c5ce6')} onBlur={e=>(e.target.style.borderColor='#e4e6ef')}/>
-            </div>
-            {error && (
-              <div style={{background:'#fdecec',border:'1px solid #f9c8c8',borderRadius:10,padding:'10px 14px',fontSize:13,fontWeight:600,color:'#e0564f'}}>{error}</div>
-            )}
-            <button type="submit" disabled={loading} style={{...S.btn,opacity:loading?.65:1,cursor:loading?'not-allowed':'pointer'}}>
-              {loading?'Connexion…':'Se connecter →'}
-            </button>
-          </form>
-
-          <div style={{marginTop:20,textAlign:'center',fontSize:12,color:'#b6bac6',fontWeight:500}}>
-            Mot de passe demo universel : <span style={{color:'#6c5ce6',fontWeight:700}}>kssi2024</span>
-          </div>
+          <h1 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            KSSI <span style={{ color: '#caa35e' }}>Tech</span>
+          </h1>
+          <p className="text-xs text-slate-400 font-medium mt-1">Tableau de bord · Suivi FTTH</p>
         </div>
 
-        {/* Right — demo profiles */}
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          <div style={{fontSize:13,fontWeight:700,color:'#6c7184',textTransform:'uppercase',letterSpacing:.5,marginBottom:2}}>
-            🔑 Profils de démonstration
-          </div>
-          {DEMO_USERS.map((u,i)=>(
-            <div key={i} onClick={()=>fill(u)} style={{background:'#fff',borderRadius:16,padding:'16px 18px',boxShadow:'0 4px 16px rgba(30,35,60,.06)',cursor:'pointer',border:`1.5px solid ${email===u.email?u.color:'transparent'}`,transition:'all .15s'}}
-              onMouseEnter={e=>(e.currentTarget.style.transform='translateY(-1px)')}
-              onMouseLeave={e=>(e.currentTarget.style.transform='translateY(0)')}>
-              <div style={{display:'flex',alignItems:'center',gap:13}}>
-                <div style={{width:42,height:42,borderRadius:12,background:u.color+'18',color:u.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,flexShrink:0}}>{u.badge}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    <div style={{fontSize:14,fontWeight:700,color:'#1d2030'}}>{u.name}</div>
-                    <span style={{fontSize:11,fontWeight:700,color:u.color,background:u.color+'18',padding:'2px 8px',borderRadius:7}}>{u.role}</span>
-                  </div>
-                  <div style={{fontSize:12,color:'#9398a8',marginTop:2,fontWeight:500}}>{u.desc}</div>
-                  <div style={{fontSize:11.5,color:'#b6bac6',marginTop:3,fontWeight:500}}>{u.email}</div>
-                </div>
-                <div style={{fontSize:16,color:email===u.email?u.color:'#c2c6d2',fontWeight:700}}>→</div>
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-          {/* Also demo@kssitech.ma shortcut */}
-          <div style={{background:'linear-gradient(135deg,#f4f2ff,#eef6ff)',borderRadius:14,padding:'13px 16px',border:'1px solid rgba(108,92,230,.15)',cursor:'pointer'}} onClick={()=>fill({email:'demo@kssitech.ma',name:'',role:'',badge:'',color:'#6c5ce6',desc:''})}>
-            <div style={{fontSize:12,fontWeight:700,color:'#6c5ce6',marginBottom:4}}>Accès rapide</div>
-            <div style={{fontSize:13,fontWeight:600,color:'#1d2030'}}>demo@kssitech.ma — Secrétaire (Hamza)</div>
+          {/* Left — login form */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-7 border border-slate-200/80 dark:border-slate-700">
+            <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-1 tracking-tight">Connexion</h2>
+            <p className="text-xs text-slate-400 font-medium mb-6">
+              Entrez vos identifiants ou choisissez un profil ci-contre.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-[0.07em] mb-1.5">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  placeholder="votre@email.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm font-medium text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E5FA8]/30 focus:border-[#1E5FA8] dark:focus:border-[#1E5FA8] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-[0.07em] mb-1.5">
+                  Mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm font-medium text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1E5FA8]/30 focus:border-[#1E5FA8] dark:focus:border-[#1E5FA8] transition-all"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-[#0A1628] text-[#F4F1EA] text-sm font-bold shadow-md hover:bg-slate-800 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Connexion…' : 'Se connecter →'}
+              </button>
+            </form>
+
+            <div className="mt-5 text-center text-xs text-slate-400 font-medium">
+              Mot de passe demo :{' '}
+              <span className="font-bold" style={{ color: '#caa35e' }}>kssi2024</span>
+            </div>
+          </div>
+
+          {/* Right — demo profiles */}
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.08em] mb-1">
+              🔑 Profils de démonstration
+            </p>
+
+            {DEMO_USERS.map((u, i) => (
+              <div
+                key={i}
+                onClick={() => fill(u)}
+                className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md"
+                style={{ border: `1.5px solid ${email === u.email ? u.color : 'transparent'}` }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                    style={{ background: u.color + '18', color: u.color }}
+                  >
+                    {u.badge}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-900 dark:text-white">{u.name}</span>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        style={{ color: u.color, background: u.color + '18' }}
+                      >
+                        {u.role}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5 font-medium">{u.desc}</p>
+                    <p className="text-[10.5px] text-slate-300 dark:text-slate-500 mt-0.5 font-medium">{u.email}</p>
+                  </div>
+                  <span
+                    className="text-base font-bold"
+                    style={{ color: email === u.email ? u.color : '#c2c6d2' }}
+                  >
+                    →
+                  </span>
+                </div>
+              </div>
+            ))}
+
+            {/* Quick access */}
+            <div
+              onClick={() => fill({ email: 'demo@kssitech.ma', color: '#caa35e' })}
+              className="rounded-xl p-3.5 border cursor-pointer hover:shadow-md transition-all"
+              style={{
+                background: 'linear-gradient(135deg, rgba(202,163,94,0.08), rgba(30,95,168,0.06))',
+                borderColor: 'rgba(202,163,94,0.25)',
+              }}
+            >
+              <p className="text-xs font-bold mb-1" style={{ color: '#caa35e' }}>Accès rapide</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-white">
+                demo@kssitech.ma — Secrétaire (Hamza)
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default Login;

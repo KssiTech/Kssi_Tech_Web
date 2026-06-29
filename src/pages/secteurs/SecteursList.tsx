@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { sectors } from "@/data/sectors";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const SECTOR_GROUPS: Record<string, string[]> = {
+  "Électricité & Énergie": ["electricite", "energie"],
+  "Automatisation & Réseaux": ["automatisation", "reseaux"],
+  "Sécurité & Maintenance": ["surveillance", "maintenance"],
+};
 
 // Overlay gradients per sector — same palette as hero panels
 const OVERLAYS: Record<string, string> = {
@@ -30,6 +36,12 @@ const ACCENTS: Record<string, string> = {
 
 const SecteursList: React.FC = () => {
   const { t } = useLanguage();
+  const [activeFilter, setActiveFilter] = useState<string>("Tous");
+
+  const filteredSectors = activeFilter === "Tous"
+    ? sectors
+    : sectors.filter(s => SECTOR_GROUPS[activeFilter]?.includes(s.slug));
+
   return (
   <>
     <Helmet>
@@ -72,8 +84,44 @@ const SecteursList: React.FC = () => {
       {/* ── Sector cards (photo panels) ── */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sectors.map((sector, i) => {
+
+          {/* Filter tabs */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-wrap justify-center gap-3 mb-10"
+          >
+            {["Tous", ...Object.keys(SECTOR_GROUPS)].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 border ${
+                  activeFilter === filter
+                    ? "bg-khwarizmia-navy text-khwarizmia-paper border-khwarizmia-navy shadow-md"
+                    : "bg-background text-foreground border-border hover:border-khwarizmia-teal/50 hover:text-foreground"
+                }`}
+              >
+                {filter}
+                {filter !== "Tous" && (
+                  <span className={`ml-2 text-xs font-bold ${activeFilter === filter ? "text-khwarizmia-teal" : "text-muted-foreground"}`}>
+                    {SECTOR_GROUPS[filter].length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeFilter}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+            {filteredSectors.map((sector, i) => {
               const overlay = OVERLAYS[sector.slug] || "from-stone-900/88 via-stone-800/50 to-transparent";
               const accent  = ACCENTS[sector.slug]  || "#C6A667";
               return (
@@ -153,7 +201,8 @@ const SecteursList: React.FC = () => {
                 </motion.div>
               );
             })}
-          </div>
+            </motion.div>
+          </AnimatePresence>
 
           {/* ── CTA banner ── */}
           <motion.div

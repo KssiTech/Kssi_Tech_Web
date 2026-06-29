@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight, Shield, Zap, Users, Layers, Wrench,
-  Phone, Mail, MapPin, Sun, Network, Eye, Settings, Award
+  Phone, Mail, MapPin, Sun, Network, Eye, Settings, Award,
+  ClipboardList, FileText, HardHat, HeartHandshake, Quote, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
@@ -439,6 +440,81 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ── NOTRE PROCESSUS ── */}
+      <section className={`py-20 ${isDark ? "bg-slate-950" : "bg-white"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-14"
+          >
+            <h2 className={`text-4xl font-bold mb-4 ${isDark ? "text-white" : "text-khwarizmia-navy"}`}>
+              Notre Processus
+            </h2>
+            <p className={`text-lg max-w-2xl mx-auto ${isDark ? "text-stone-400" : "text-stone-600"}`}>
+              De la première rencontre à la maintenance continue, nous vous accompagnons à chaque étape.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                step: "01",
+                Icon: ClipboardList,
+                title: "Consultation",
+                body: "Analyse de vos besoins, visite technique et étude de faisabilité sur site.",
+                color: "from-blue-600 to-blue-800",
+              },
+              {
+                step: "02",
+                Icon: FileText,
+                title: "Proposition",
+                body: "Devis détaillé, planning de réalisation et choix des équipements adaptés.",
+                color: "from-amber-500 to-amber-700",
+              },
+              {
+                step: "03",
+                Icon: HardHat,
+                title: "Réalisation",
+                body: "Exécution par nos techniciens certifiés, dans le respect des normes ONEE.",
+                color: "from-emerald-600 to-emerald-800",
+              },
+              {
+                step: "04",
+                Icon: HeartHandshake,
+                title: "Suivi",
+                body: "Maintenance préventive et support technique continu pour votre tranquillité.",
+                color: "from-violet-600 to-violet-800",
+              },
+            ].map(({ step, Icon, title, body, color }, i) => (
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.12 }}
+                className={`relative p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                  isDark
+                    ? "bg-white/[0.04] border-white/10 hover:border-white/20"
+                    : "bg-stone-50 border-stone-200/80 hover:border-stone-300"
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-4 shadow-md`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+                <div className={`absolute top-5 right-5 text-4xl font-black select-none ${isDark ? "text-white/5" : "text-stone-200"}`}>
+                  {step}
+                </div>
+                <h3 className={`text-lg font-bold mb-2 ${isDark ? "text-white" : "text-khwarizmia-navy"}`}>{title}</h3>
+                <p className={`text-sm leading-relaxed ${isDark ? "text-stone-400" : "text-stone-600"}`}>{body}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── POURQUOI KSSI TECH ── */}
       <section className={`py-24 relative overflow-hidden ${isDark ? "bg-background" : "bg-stone-100"}`}>
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-stone-400/25 to-transparent" />
@@ -531,6 +607,78 @@ const Index = () => {
                 </motion.div>
               ))}
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TÉMOIGNAGES ── */}
+      <section className={`py-20 ${isDark ? "bg-slate-900" : "bg-khwarizmia-paper"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-14"
+          >
+            <h2 className={`text-4xl font-bold mb-4 ${isDark ? "text-white" : "text-khwarizmia-navy"}`}>
+              Ils nous font confiance
+            </h2>
+            <p className={`text-lg max-w-2xl mx-auto ${isDark ? "text-stone-400" : "text-stone-600"}`}>
+              Ce que nos clients disent de nos interventions et de notre sérieux.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "La qualité des travaux électriques réalisés par KSSI TECH sur notre campus répond parfaitement aux normes ONEE. Délais respectés, équipe professionnelle et réactive.",
+                name: "Directeur des Infrastructures",
+                org: "ENSA Safi",
+                initial: "E",
+              },
+              {
+                quote: "KSSI TECH a déployé notre réseau fibre optique en un temps record. La qualité de l'installation et le suivi technique après livraison sont irréprochables.",
+                name: "Responsable Réseau",
+                org: "Maroc Telecom — Safi",
+                initial: "M",
+              },
+              {
+                quote: "Le système de vidéosurveillance installé par KSSI TECH sécurise l'ensemble de nos locaux. Nous recommandons vivement leurs services à tout établissement.",
+                name: "Directeur Régional",
+                org: "OFPPT Safi",
+                initial: "O",
+              },
+            ].map(({ quote, name, org, initial }, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.12 }}
+                className={`relative p-8 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-xl ${
+                  isDark
+                    ? "bg-white/[0.04] border-white/10"
+                    : "bg-white border-stone-200/80 shadow-md"
+                }`}
+              >
+                <Quote className={`w-8 h-8 mb-4 ${isDark ? "text-khwarizmia-teal/40" : "text-khwarizmia-teal/30"}`} />
+                <p className={`text-sm leading-relaxed mb-6 ${isDark ? "text-stone-300" : "text-stone-600"}`}>
+                  "{quote}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                    isDark ? "bg-khwarizmia-teal/20 text-khwarizmia-teal" : "bg-khwarizmia-navy text-khwarizmia-paper"
+                  }`}>
+                    {initial}
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${isDark ? "text-white" : "text-khwarizmia-navy"}`}>{name}</p>
+                    <p className={`text-xs ${isDark ? "text-stone-500" : "text-stone-400"}`}>{org}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -650,6 +798,23 @@ const Index = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* ── WHATSAPP FLOATING BUTTON ── */}
+      <motion.a
+        href="https://wa.me/212661979129"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Nous contacter sur WhatsApp"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 1.5, type: "spring", stiffness: 200 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl"
+        style={{ background: "#25D366" }}
+      >
+        <MessageCircle className="w-7 h-7 text-white" />
+      </motion.a>
 
       {/* ── FOOTER ── */}
       <footer className="py-16 bg-gradient-to-br from-khwarizmia-navy via-stone-900 to-black text-khwarizmia-paper">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle, AlertCircle, MessageCircle, ExternalLink } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -87,6 +87,13 @@ const ContactSupport: React.FC = () => {
       details: addressDetails,
       description: t('contact.infoAddressDesc'),
     },
+    {
+      icon: <MessageCircle className="w-6 h-6" />,
+      title: 'WhatsApp',
+      details: ['+212 661 979 129'],
+      description: 'Réponse rapide via WhatsApp — disponible aux heures ouvrables.',
+      href: 'https://wa.me/212661979129',
+    },
   ];
 
   const inputBase = `w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-khwarizmia-teal/20 transition-colors ${
@@ -122,19 +129,41 @@ const ContactSupport: React.FC = () => {
       {/* Contact cards */}
       <section className={`py-20 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div variants={staggerContainer} initial="initial" whileInView="animate" viewport={{ once: true }} className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactInfo.map((info, index) => (
-              <motion.div key={index} variants={fadeInUp} className={`${isDark ? 'bg-gray-900' : 'bg-white'} p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
-                <div className="text-khwarizmia-teal mb-4">{info.icon}</div>
-                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-khwarizmia-navy'}`}>{info.title}</h3>
+          <motion.div variants={staggerContainer} initial="initial" whileInView="animate" viewport={{ once: true }} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {contactInfo.map((info: any, index) => (
+              <motion.div
+                key={index}
+                variants={fadeInUp}
+                className={`${isDark ? 'bg-gray-900' : 'bg-white'} p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${info.href ? 'cursor-pointer' : ''}`}
+                onClick={info.href ? () => window.open(info.href, '_blank', 'noopener noreferrer') : undefined}
+              >
+                <div className={`mb-4 ${info.href ? 'text-green-500' : 'text-khwarizmia-teal'}`}>{info.icon}</div>
+                <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-khwarizmia-navy'}`}>
+                  {info.title}
+                  {info.href && <ExternalLink className="inline w-4 h-4 ml-2 opacity-50" />}
+                </h3>
                 <div className="space-y-2 mb-4">
-                  {info.details.map((detail, idx) => (
+                  {info.details.map((detail: string, idx: number) => (
                     <p key={idx} className={`${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`}>{detail}</p>
                   ))}
                 </div>
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{info.description}</p>
               </motion.div>
             ))}
+          </motion.div>
+
+          {/* Response time note */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className={`mt-10 p-5 rounded-xl border flex items-center gap-4 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-blue-50 border-blue-100'}`}
+          >
+            <Clock className={`w-6 h-6 flex-shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <p className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+              Nous répondons à toutes les demandes <strong>sous 24 heures ouvrées</strong>. Pour les urgences, contactez-nous directement par téléphone ou WhatsApp.
+            </p>
           </motion.div>
         </div>
       </section>
@@ -216,6 +245,50 @@ const ContactSupport: React.FC = () => {
                 )}
               </Button>
             </form>
+          </motion.div>
+        </div>
+      </section>
+      {/* Map section */}
+      <section className={`py-16 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className={`text-3xl font-bold mb-8 text-center ${isDark ? 'text-white' : 'text-khwarizmia-navy'}`}>
+              Notre emplacement
+            </h2>
+
+            <div className={`rounded-2xl overflow-hidden shadow-xl border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3352.123!2d-9.2337!3d32.2994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sSafi%2C+Maroc!5e0!3m2!1sfr!2sma!4v1620000000000!5m2!1sfr!2sma"
+                width="100%"
+                height="360"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="KSSI TECH — Safi, Maroc"
+              />
+            </div>
+
+            <div className="mt-6 text-center">
+              <a
+                href="https://maps.google.com/?q=59+rue+5+Quartier+Lalla+Asmae+Safi+Maroc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-all bg-khwarizmia-navy text-khwarizmia-paper hover:bg-stone-800 shadow-md"
+              >
+                <MapPin className="w-4 h-4" />
+                Ouvrir dans Google Maps
+                <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </a>
+              <p className={`mt-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                59, rue 5, Qu. Lalla Asmae, Bd Hassan II — Safi, Maroc
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>

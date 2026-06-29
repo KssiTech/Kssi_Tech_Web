@@ -32,93 +32,93 @@ export default function News() {
   }
 
   const categories = [
-    { id: 'all', name: 'All News', icon: <Globe className="w-4 h-4" /> },
-    { id: 'press-release', name: 'Press Releases', icon: <Newspaper className="w-4 h-4" /> },
-    { id: 'research', name: 'Research Papers', icon: <FileText className="w-4 h-4" /> },
-    { id: 'industry', name: 'Industry Updates', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'awards', name: 'Awards & Recognition', icon: <Award className="w-4 h-4" /> }
+    { id: 'all',         name: 'Toutes les actualités', icon: <Globe className="w-4 h-4" /> },
+    { id: 'project',     name: 'Projets réalisés',      icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'award',       name: 'Certifications',        icon: <Award className="w-4 h-4" /> },
+    { id: 'partnership', name: 'Partenariats',          icon: <Newspaper className="w-4 h-4" /> },
+    { id: 'event',       name: 'Événements',            icon: <FileText className="w-4 h-4" /> },
   ]
 
   const newsItems = [
     {
       id: 1,
-      category: 'press-release',
-      title: 'KSSI TECH Announces Major Nos clients Bank Deployment',
-      excerpt: 'Leading global investment bank successfully implements the KSSI TECH platform across trading desks, achieving a major performance lift in derivatives pricing workflows.',
-      date: '2024-08-15',
-      image: '/api/placeholder/600/300',
-      link: '/blog',
+      category: 'award',
+      title: 'KSSI TECH renouvelle son agrément ONEE pour les installations BT/MT',
+      excerpt: 'KSSI TECH confirme sa qualification auprès de l\'Office National de l\'Électricité et de l\'Eau Potable (ONEE) pour la réalisation d\'installations électriques basse et moyenne tension, renforçant sa position comme acteur de référence dans la région de Safi.',
+      date: '2025-03-10',
+      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&q=80',
+      link: '/secteurs/electricite',
       featured: true
     },
     {
       id: 2,
-      category: 'awards',
-      title: 'KSSI TECH Wins "Innovation in Solutions Industrielles" Award at QuantMinds 2024',
-      excerpt: 'Recognition for KSSI TECH\'s innovations in solutions industrielles et tertiaires and their impact on production trading systems at major institutions.',
-      date: '2024-07-22',
-      image: '/api/placeholder/600/300',
-      link: '/blog',
-      featured: false
-    },
-    {
-      id: 3,
-      category: 'research',
-      title: 'Multi-factor Gaussian Models Calibration: Swaptions and CMS Options',
-      excerpt: 'New research paper published in Risk.net introducing the Asymptotic Annuity Method (AAM) with 42x speed improvement and superior accuracy for real-time calibration.',
-      date: '2024-06-10',
-      image: '/api/placeholder/600/300',
-      link: '/resources/risk-net-paper',
+      category: 'project',
+      title: 'Déploiement réseau fibre optique pour Maroc Telecom — Safi',
+      excerpt: 'KSSI TECH achève avec succès le déploiement d\'une infrastructure réseau fibre optique sur plusieurs sites Maroc Telecom dans la wilaya de Safi, garantissant une connectivité haut débit pour les entreprises et institutions de la région.',
+      date: '2025-01-22',
+      image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80',
+      link: '/secteurs/reseaux',
       featured: true
     },
     {
+      id: 3,
+      category: 'project',
+      title: 'Installation d\'un système de vidéosurveillance ENSA Safi',
+      excerpt: 'KSSI TECH finalise l\'installation d\'un système CCTV complet au sein de l\'École Nationale des Sciences Appliquées de Safi, couvrant l\'ensemble des bâtiments et espaces extérieurs avec des caméras haute définition et un centre de supervision centralisé.',
+      date: '2024-12-05',
+      image: 'https://images.unsplash.com/photo-1580983559367-0dc2f8934365?w=600&q=80',
+      link: '/secteurs/surveillance',
+      featured: false
+    },
+    {
       id: 4,
-      category: 'industry',
-      title: 'Basel III Compliance: KSSI TECH Models Approved for Regulatory Capital',
-      excerpt: 'KSSI TECH models receive regulatory approval for use in Basel III capital calculations, marking a significant milestone for the solutions industrielles et tertiaires industry.',
-      date: '2024-05-28',
-      image: '/api/placeholder/600/300',
-      link: '/blog',
+      category: 'project',
+      title: 'Centrale photovoltaïque 50 kWc pour un industriel de Safi',
+      excerpt: 'Réalisation d\'une installation solaire de 50 kilowatts-crête pour un client industriel dans la zone industrielle de Safi, permettant une réduction significative de la facture énergétique et une contribution aux objectifs de transition énergétique du Maroc.',
+      date: '2024-10-14',
+      image: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80',
+      link: '/secteurs/energie',
       featured: false
     },
     {
       id: 5,
-      category: 'press-release',
-      title: 'KSSI TECH Expands European Operations with New London Office',
-      excerpt: 'Strategic expansion to better serve entreprise industrielles and financial institutions across Europe with KSSI TECH software and solutions industrielles et tertiaires expertise.',
-      date: '2024-04-15',
-      image: '/api/placeholder/600/300',
-      link: '/company/about',
+      category: 'event',
+      title: 'KSSI TECH au Salon des Énergies Renouvelables — Casablanca 2025',
+      excerpt: 'KSSI TECH participe au Salon International des Énergies Renouvelables et de l\'Efficacité Énergétique à Casablanca, présentant ses solutions photovoltaïques et ses réalisations dans le secteur de l\'énergie propre au Maroc.',
+      date: '2025-04-20',
+      image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&q=80',
+      link: '/contact-support',
       featured: false
     },
     {
       id: 6,
-      category: 'research',
-      title: 'KSSI TECH Platform 2.0: Technical Whitepaper Released',
-      excerpt: 'Comprehensive technical documentation detailing the next generation of KSSI TECH technology and its applications in complex derivatives portfolios.',
-      date: '2024-03-20',
-      image: '/api/placeholder/600/300',
-      link: '/resources/whitepapers',
+      category: 'partnership',
+      title: 'Contrat de maintenance industrielle avec Lafarge Placo Maroc',
+      excerpt: 'KSSI TECH signe un contrat de maintenance préventive et corrective pluriannuel avec Lafarge Placo Maroc, couvrant l\'ensemble des équipements électriques et automatisés de leur site de production dans la région de Safi.',
+      date: '2024-09-01',
+      image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80',
+      link: '/secteurs/maintenance',
       featured: false
     }
   ]
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'press-release': return <Newspaper className="w-4 h-4" />
-      case 'awards': return <Award className="w-4 h-4" />
-      case 'research': return <FileText className="w-4 h-4" />
-      case 'industry': return <TrendingUp className="w-4 h-4" />
-      default: return <Globe className="w-4 h-4" />
+      case 'project':     return <TrendingUp className="w-4 h-4" />
+      case 'award':       return <Award className="w-4 h-4" />
+      case 'partnership': return <Newspaper className="w-4 h-4" />
+      case 'event':       return <FileText className="w-4 h-4" />
+      default:            return <Globe className="w-4 h-4" />
     }
   }
 
   const getCategoryName = (category: string) => {
     switch (category) {
-      case 'press-release': return 'Press Release'
-      case 'awards': return 'Award'
-      case 'research': return 'Research'
-      case 'industry': return 'Industry Update'
-      default: return 'News'
+      case 'project':     return 'Projet réalisé'
+      case 'award':       return 'Certification'
+      case 'partnership': return 'Partenariat'
+      case 'event':       return 'Événement'
+      default:            return 'Actualité'
     }
   }
 
@@ -129,9 +129,9 @@ export default function News() {
   return (
     <>
       <Helmet>
-        <title>News & Updates - KSSI TECH | Latest Solutions Industrielles Industry News</title>
-        <meta name="description" content="Stay updated with KSSI TECH's latest news, research publications, industry insights, and company developments in solutions industrielles et tertiaires." />
-        <meta name="keywords" content="KSSI TECH news, solutions industrielles et tertiaires news, derivatives pricing, entreprise industrielles, research papers, industry updates" />
+        <title>Actualités — KSSI TECH | Projets, Certifications & Événements</title>
+        <meta name="description" content="Suivez les dernières actualités de KSSI TECH : projets réalisés, certifications ONEE, partenariats et événements dans le secteur industriel à Safi, Maroc." />
+        <meta name="keywords" content="KSSI TECH actualités, projets électricité Safi, certification ONEE, énergie renouvelable Maroc, vidéosurveillance, maintenance industrielle" />
         <link rel="canonical" href="https://kssi-tech.com/news" />
       </Helmet>
 
@@ -149,10 +149,10 @@ export default function News() {
               className="text-center"
             >
               <h1 className="text-5xl lg:text-6xl font-bold mb-6">
-                KSSI TECH <span className="text-khwarizmia-teal">News</span>
+                Nos <span className="text-khwarizmia-teal">Actualités</span>
               </h1>
               <p className="text-xl lg:text-2xl text-gray-200 max-w-4xl mx-auto leading-relaxed">
-                Latest company updates, industry insights, and solutions industrielles et tertiaires news from KSSI TECH.
+                Projets réalisés, certifications, partenariats et événements — suivez l'actualité de KSSI TECH à Safi et au Maroc.
               </p>
             </motion.div>
           </div>
@@ -198,7 +198,7 @@ export default function News() {
                 transition={{ duration: 0.6 }}
                 className="mb-12"
               >
-                <h2 className="text-3xl font-bold text-foreground mb-8">Featured News</h2>
+                <h2 className="text-3xl font-bold text-foreground mb-8">À la une</h2>
               </motion.div>
 
               <motion.div
@@ -254,7 +254,7 @@ export default function News() {
                               className="flex items-center space-x-2 text-khwarizmia-teal hover:text-white transition-colors"
                               whileHover={{ x: 4 }}
                             >
-                              <span>Read More</span>
+                              <span>Lire la suite</span>
                               <ArrowRight className="w-4 h-4" />
                             </motion.a>
                           ) : (
@@ -283,7 +283,7 @@ export default function News() {
               className="mb-12"
             >
               <h2 className="text-3xl font-bold text-foreground mb-8">
-                {activeCategory === 'all' ? 'Latest News' : `${categories.find(c => c.id === activeCategory)?.name}`}
+                {activeCategory === 'all' ? 'Dernières actualités' : categories.find(c => c.id === activeCategory)?.name}
               </h2>
             </motion.div>
 
@@ -339,7 +339,7 @@ export default function News() {
                           className="flex items-center space-x-1 text-khwarizmia-teal hover:text-khwarizmia-gold transition-colors"
                           whileHover={{ x: 2 }}
                         >
-                          <span className="text-sm font-semibold">Read More</span>
+                          <span className="text-sm font-semibold">Lire la suite</span>
                           <ExternalLink className="w-3 h-3" />
                         </motion.a>
                       ) : (
