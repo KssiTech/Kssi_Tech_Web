@@ -13,6 +13,7 @@ import HeroDotGridBackground from "@/components/HeroDotGridBackground";
 import StitchAuroraLayer from "@/components/StitchAuroraLayer";
 import { useNavigate } from "react-router-dom";
 import SpinningGlobe from "@/components/SpinningGlobe";
+import { withBase } from "@/lib/utils";
 import HeroSectorPanels from "@/components/HeroSectorPanels";
 import ClientsMarquee from "@/components/ClientsMarquee";
 
@@ -163,7 +164,7 @@ const Index = () => {
             <>
               <div
                 className="absolute inset-0 bg-black bg-cover bg-center"
-                style={{ backgroundImage: "url('/dark.png')" }}
+                style={{ backgroundImage: `url('${withBase("/dark.png")}')` }}
               />
               <StitchAuroraLayer />
               <HeroDotGridBackground isDark variant="stitch" />
@@ -172,7 +173,7 @@ const Index = () => {
             <>
               <div
                 className="absolute inset-0 bg-khwarizmia-paper bg-cover bg-center"
-                style={{ backgroundImage: "url('/light.png')" }}
+                style={{ backgroundImage: `url('${withBase("/light.png")}')` }}
               />
               <div
                 className="absolute inset-0 opacity-90"

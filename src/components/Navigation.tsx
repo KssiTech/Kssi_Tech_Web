@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Lang } from "@/i18n/translations";
+import { withBase } from "@/lib/utils";
 
 const LANGS: { code: Lang; label: string; flag: string }[] = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
@@ -114,7 +115,7 @@ const Navigation = () => {
             whileTap={{ scale: 0.97 }}
           >
             <img
-              src={isDark ? "/logo_Khwarizmia_light.png" : "/logo_Khwarizmia.png"}
+              src={withBase(isDark ? "/logo_Khwarizmia_light.png" : "/logo_Khwarizmia.png")}
               alt="KSSI Tech logo"
               className="w-8 h-8 object-contain"
             />
@@ -219,7 +220,7 @@ const Navigation = () => {
                 <div className="flex flex-col gap-5 mt-8">
                   {/* Brand header */}
                   <div className="flex items-center gap-3 mb-3">
-                    <img src={isDark ? "/logo_Khwarizmia_light.png" : "/logo_Khwarizmia.png"} alt="KSSI Tech" className="w-9 h-9 object-contain" />
+                    <img src={withBase(isDark ? "/logo_Khwarizmia_light.png" : "/logo_Khwarizmia.png")} alt="KSSI Tech" className="w-9 h-9 object-contain" />
                     <div>
                       <h2 className={`font-bold text-lg leading-tight ${isDark ? "text-white" : "text-khwarizmia-navy"}`}>KSSI TECH</h2>
                       <p className="text-[10px] uppercase tracking-[0.2em] font-semibold" style={{ color: "#caa35e" }}>Leading Technical Future World</p>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:#eef0f4;font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+    ::-webkit-scrollbar{width:9px;height:9px;}
+    ::-webkit-scrollbar-thumb{background:#d3d7e0;border-radius:6px;}
+    @keyframes kssiPop{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  </style>
+</helmet>
+<div style="min-height:100vh;background:#eef0f4;padding:26px 30px 40px;color:#1d2030;">
+  <div style="max-width:1380px;margin:0 auto;">
+
+    <!-- top bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div style="width:42px;height:42px;border-radius:13px;background:#15171f;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(20,22,30,.22);">
+            <img src="assets/kssi-logo.png" alt="KSSI" style="width:28px;height:28px;object-fit:contain;" />
+          </div>
+          <div style="line-height:1;">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-.4px;">KSSI<span style="color:#caa35e;"> Tech</span></div>
+            <div style="font-size:11px;color:#9398a8;font-weight:600;margin-top:3px;">Suivi des installations FTTH</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:#16c79a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.1);">H</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#5b8def;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-left:-14px;">O</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#9b7ce6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-left:-14px;">M</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#fff;padding:6px;border-radius:16px;box-shadow:0 4px 14px rgba(30,35,60,.06);">
+        <div style="padding:9px 20px;border-radius:11px;background:#15171f;color:#fff;font-size:13.5px;font-weight:600;">Vue d'ensemble</div>
+        <div style="padding:9px 18px;border-radius:11px;color:#6c7184;font-size:13.5px;font-weight:600;cursor:pointer;">Clients</div>
+        <div style="padding:9px 18px;border-radius:11px;color:#6c7184;font-size:13.5px;font-weight:600;cursor:pointer;">Installations</div>
+        <div style="padding:9px 18px;border-radius:11px;color:#6c7184;font-size:13.5px;font-weight:600;cursor:pointer;">Équipes</div>
+        <div style="padding:9px 18px;border-radius:11px;color:#6c7184;font-size:13.5px;font-weight:600;cursor:pointer;">Rapports</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(30,35,60,.06);color:#6c7184;">⚙</div>
+        <div style="width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(30,35,60,.06);color:#6c7184;position:relative;">⌁<span style="position:absolute;top:9px;right:11px;width:7px;height:7px;background:#ef5b54;border-radius:50%;border:1.5px solid #fff;"></span></div>
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#caa35e,#15171f);"></div>
+      </div>
+    </div>
+
+    <!-- grid -->
+    <div style="display:grid;grid-template-columns:1fr 372px;gap:20px;align-items:start;">
+
+      <!-- LEFT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0;">
+
+        <!-- KPI cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+          <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:14px;font-weight:600;color:#6c7184;">Demandes totales</div>
+              <div style="font-size:12px;font-weight:700;color:#16a06f;background:#e4f7ef;padding:4px 9px;border-radius:8px;">{{ deltaTotal }}</div>
+            </div>
+            <div style="font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:14px;">{{ kpiTotal }}</div>
+            <div style="font-size:13px;color:#9398a8;margin-top:6px;font-weight:500;">{{ periodLabel }}</div>
+          </div>
+          <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:14px;font-weight:600;color:#6c7184;">Installées</div>
+              <div style="font-size:12px;font-weight:700;color:#16a06f;background:#e4f7ef;padding:4px 9px;border-radius:8px;">{{ kpiTaux }}%</div>
+            </div>
+            <div style="font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:14px;color:#16a06f;">{{ kpiInstalle }}</div>
+            <div style="font-size:13px;color:#9398a8;margin-top:6px;font-weight:500;">Taux d'installation</div>
+          </div>
+          <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:14px;font-weight:600;color:#6c7184;">À retraiter</div>
+              <div style="font-size:12px;font-weight:700;color:#e0564f;background:#fdecec;padding:4px 9px;border-radius:8px;">{{ kpiBloque }} bloq.</div>
+            </div>
+            <div style="font-size:38px;font-weight:800;letter-spacing:-1px;margin-top:14px;">{{ kpiAretraiter }}</div>
+            <div style="font-size:13px;color:#9398a8;margin-top:6px;font-weight:500;">Annulées + bloquées</div>
+          </div>
+        </div>
+
+        <!-- chart card -->
+        <div style="background:#fff;border-radius:20px;padding:24px 26px 18px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;">Analyse des installations</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div onClick="{{ toggleMetric }}" style="display:flex;align-items:center;gap:7px;background:#f4f5f8;padding:8px 14px;border-radius:11px;font-size:13px;font-weight:600;color:#3a3f52;cursor:pointer;">{{ metricLabel }} <span style="color:#9398a8;">⌄</span></div>
+              <div style="display:flex;align-items:center;gap:7px;background:#f4f5f8;padding:8px 14px;border-radius:11px;font-size:13px;font-weight:600;color:#3a3f52;">{{ periodLabel }} <span style="color:#9398a8;">⌄</span></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:26px;margin-top:18px;align-items:stretch;flex-wrap:wrap;">
+            <div style="width:226px;flex:none;display:flex;flex-direction:column;">
+              <div style="display:flex;flex-direction:column;gap:11px;">
+                <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#4a4f63;"><span style="width:11px;height:11px;border-radius:50%;background:#16c79a;"></span>Réalisées</div>
+                <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#9398a8;"><span style="width:11px;height:11px;border-radius:50%;background:{{ accent }};"></span>Pic de la période</div>
+              </div>
+              <div style="margin-top:18px;background:{{ accentSoft }};border:1px solid {{ accentBorder }};border-radius:14px;padding:14px 15px;display:flex;gap:10px;">
+                <div style="width:24px;height:24px;border-radius:8px;background:{{ accent }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;">✦</div>
+                <div style="font-size:12.5px;line-height:1.55;color:#4a4f63;font-weight:500;">{{ insight }}</div>
+              </div>
+              <div onClick="{{ runAnalysis }}" style="margin-top:14px;background:linear-gradient(135deg,{{ accent }},#5b8def);color:#fff;font-size:14px;font-weight:700;text-align:center;padding:13px;border-radius:13px;cursor:pointer;box-shadow:0 8px 18px {{ accentShadow }};">{{ runLabel }}</div>
+            </div>
+            <div style="flex:1;min-width:300px;">{{ chart }}</div>
+          </div>
+        </div>
+
+        <!-- table card -->
+        <div style="background:#fff;border-radius:20px;padding:24px 26px 12px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;">Suivi des installations</div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#f4f5f8;display:flex;align-items:center;justify-content:center;color:#9398a8;">⌕</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid #eef0f4;padding-bottom:14px;margin-bottom:6px;flex-wrap:wrap;">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+              <div onClick="{{ t.onClick }}" style="display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:11px;font-size:13.5px;font-weight:600;cursor:pointer;background:{{ t.bg }};color:{{ t.color }};">
+                {{ t.label }}<span style="font-size:11px;font-weight:700;background:{{ t.badgeBg }};color:{{ t.badgeColor }};padding:1px 7px;border-radius:7px;">{{ t.count }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:2.1fr 1.2fr 1fr 1.1fr 1.2fr 40px;gap:10px;padding:10px 6px;font-size:12px;font-weight:700;color:#9398a8;text-transform:uppercase;letter-spacing:.4px;">
+            <div>Client</div><div>Équipe</div><div>Débit</div><div>Planifié</div><div>Statut</div><div></div>
+          </div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:2.1fr 1.2fr 1fr 1.1fr 1.2fr 40px;gap:10px;padding:13px 6px;align-items:center;border-top:1px solid #f3f4f8;">
+              <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <div style="width:38px;height:38px;border-radius:50%;background:{{ r.avatarBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none;">{{ r.initials }}</div>
+                <div style="min-width:0;">
+                  <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.nom }}</div>
+                  <div style="font-size:12px;color:#9398a8;font-weight:500;">{{ r.sip }}</div>
+                </div>
+              </div>
+              <div style="font-size:13.5px;font-weight:600;color:#4a4f63;">{{ r.equipe }}</div>
+              <div style="font-size:13.5px;font-weight:700;color:#1d2030;">{{ r.debit }}</div>
+              <div style="font-size:13.5px;font-weight:500;color:#6c7184;">{{ r.planif }}</div>
+              <div><span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;background:{{ r.statusBg }};color:{{ r.statusColor }};padding:5px 11px;border-radius:9px;"><span style="width:6px;height:6px;border-radius:50%;background:{{ r.statusColor }};"></span>{{ r.statusLabel }}</span></div>
+              <div style="text-align:center;color:#c2c6d2;font-weight:700;cursor:pointer;">⋮</div>
+            </div>
+          </sc-for>
+          <div style="height:8px;"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- priority tasks -->
+        <div style="background:#fff;border-radius:20px;padding:22px 24px;box-shadow:0 6px 20px rgba(30,35,60,.05);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;">Installations à venir</div>
+            <div style="font-size:13px;font-weight:700;color:{{ accent }};cursor:pointer;">Tout voir</div>
+          </div>
+          <sc-for list="{{ priorityTasks }}" as="p" hint-placeholder-count="4">
+            <div style="display:flex;align-items:flex-start;gap:13px;padding:14px 0;border-bottom:1px solid #f3f4f8;">
+              <div style="width:34px;height:34px;border-radius:50%;background:{{ p.avatarBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;">{{ p.initials }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.nom }}</div>
+                  <div style="font-size:11px;font-weight:700;color:{{ accent }};background:{{ accentSoft }};padding:2px 8px;border-radius:7px;flex:none;">{{ p.planif }}</div>
+                </div>
+                <div style="font-size:12.5px;color:#9398a8;margin-top:3px;font-weight:500;">{{ p.equipe }} · {{ p.debit }}</div>
+              </div>
+              <div style="color:#c2c6d2;font-weight:700;">›</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- import / breakdown card -->
+        <div style="border-radius:20px;padding:24px;box-shadow:0 6px 20px rgba(30,35,60,.05);background:linear-gradient(160deg,#f4f2ff 0%,#eef6ff 55%,#eafaf3 100%);">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:13px;color:#6c7184;font-weight:600;">Source de données</div>
+              <div style="font-size:19px;font-weight:800;letter-spacing:-.3px;margin-top:2px;">Importer un fichier Excel</div>
+            </div>
+            <div style="width:44px;height:44px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 12px rgba(30,35,60,.08);">📊</div>
+          </div>
+
+          <input type="file" accept=".xlsx,.xls,.csv" ref="{{ fileRef }}" onChange="{{ onFile }}" style="display:none;" />
+          <div onClick="{{ pickFile }}" onDragover="{{ onDragOver }}" onDrop="{{ onDrop }}" style="margin-top:16px;border:1.6px dashed {{ dropBorder }};border-radius:15px;background:rgba(255,255,255,.6);padding:20px 18px;text-align:center;cursor:pointer;transition:all .15s;">
+            <div style="font-size:13.5px;font-weight:700;color:#3a3f52;">{{ dropTitle }}</div>
+            <div style="font-size:12px;color:#9398a8;margin-top:4px;font-weight:500;">Glissez votre .xlsx ici ou cliquez pour parcourir</div>
+            <div style="display:inline-block;margin-top:13px;background:{{ accent }};color:#fff;font-size:13px;font-weight:700;padding:9px 20px;border-radius:11px;box-shadow:0 6px 16px {{ accentShadow }};">Choisir un fichier</div>
+          </div>
+
+          <div style="font-size:13px;font-weight:700;color:#3a3f52;margin:20px 0 12px;">Répartition par débit</div>
+          <sc-for list="{{ debitList }}" as="d" hint-placeholder-count="3">
+            <div style="margin-bottom:13px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:600;color:#4a4f63;margin-bottom:6px;">
+                <span>{{ d.label }}</span><span style="color:#9398a8;">{{ d.count }} · {{ d.pct }}%</span>
+              </div>
+              <div style="height:9px;border-radius:6px;background:rgba(255,255,255,.65);overflow:hidden;">
+                <div style="height:100%;border-radius:6px;width:{{ d.width }};background:{{ d.color }};"></div>
+              </div>
+            </div>
+          </sc-for>
+
+          <div style="font-size:13px;font-weight:700;color:#3a3f52;margin:18px 0 12px;">Par équipe</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ equipeList }}" as="e" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.6);padding:10px 13px;border-radius:12px;">
+                <div style="width:32px;height:32px;border-radius:9px;background:{{ e.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;">{{ e.initials }}</div>
+                <div style="flex:1;font-size:13.5px;font-weight:700;color:#1d2030;">{{ e.name }}</div>
+                <div style="text-align:right;">
+                  <div style="font-size:13.5px;font-weight:800;">{{ e.installe }}</div>
+                  <div style="font-size:11px;color:#9398a8;font-weight:600;">/ {{ e.total }} dem.</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- AI assistant card -->
+        <div style="border-radius:20px;padding:24px;box-shadow:0 6px 20px rgba(30,35,60,.05);background:linear-gradient(160deg,#eef0ff 0%,#f3effb 55%,#eef6ff 100%);">
+          <div style="text-align:center;">
+            <div style="font-size:14px;color:#6c7184;font-weight:600;">Bonjour Hamza 👋</div>
+            <div style="font-size:23px;font-weight:800;letter-spacing:-.4px;margin-top:4px;">Comment puis-je vous aider ?</div>
+          </div>
+          <div style="display:flex;gap:6px;background:#fff;padding:5px;border-radius:13px;margin-top:18px;box-shadow:0 4px 12px rgba(30,35,60,.05);">
+            <div style="flex:1;text-align:center;padding:9px;border-radius:9px;background:{{ accentSoft }};color:{{ accent }};font-size:13px;font-weight:700;">KSSI AI</div>
+            <div style="flex:1;text-align:center;padding:9px;border-radius:9px;color:#9398a8;font-size:13px;font-weight:600;cursor:pointer;">GPT</div>
+            <div style="flex:1;text-align:center;padding:9px;border-radius:9px;color:#9398a8;font-size:13px;font-weight:600;cursor:pointer;">DeepSeek</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px;">
+            <div style="background:#fff;border-radius:13px;padding:14px;box-shadow:0 3px 10px rgba(30,35,60,.05);cursor:pointer;">
+              <div style="width:34px;height:34px;border-radius:10px;background:#e4f7ef;color:#16a06f;display:flex;align-items:center;justify-content:center;font-size:16px;">📞</div>
+              <div style="font-size:13px;font-weight:700;margin-top:10px;color:#1d2030;">Relancer injoignables</div>
+            </div>
+            <div style="background:#fff;border-radius:13px;padding:14px;box-shadow:0 3px 10px rgba(30,35,60,.05);cursor:pointer;">
+              <div style="width:34px;height:34px;border-radius:10px;background:#eceafe;color:#6c5ce6;display:flex;align-items:center;justify-content:center;font-size:16px;">📅</div>
+              <div style="font-size:13px;font-weight:700;margin-top:10px;color:#1d2030;">Replanifier retards</div>
+            </div>
+            <div style="background:#fff;border-radius:13px;padding:14px;box-shadow:0 3px 10px rgba(30,35,60,.05);cursor:pointer;">
+              <div style="width:34px;height:34px;border-radius:10px;background:#fdf3e3;color:#d99a2b;display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
+              <div style="font-size:13px;font-weight:700;margin-top:10px;color:#1d2030;">Optimiser planning</div>
+            </div>
+            <div style="background:#fff;border-radius:13px;padding:14px;box-shadow:0 3px 10px rgba(30,35,60,.05);cursor:pointer;">
+              <div style="width:34px;height:34px;border-radius:10px;background:#fdecec;color:#e0564f;display:flex;align-items:center;justify-content:center;font-size:16px;">📄</div>
+              <div style="font-size:13px;font-weight:700;margin-top:10px;color:#1d2030;">Rapport hebdo</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:13px;padding:13px 16px;box-shadow:0 4px 12px rgba(30,35,60,.05);">
+            <div style="flex:1;color:#9398a8;font-size:13.5px;font-weight:500;">Posez une question sur vos données…</div>
+            <div style="width:34px;height:34px;border-radius:10px;background:{{ accent }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;box-shadow:0 4px 10px {{ accentShadow }};">➤</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1180},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#6c5ce6&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#6c5ce6&quot;,&quot;#5b8def&quot;,&quot;#16a06f&quot;,&quot;#caa35e&quot;]}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.fileRef = React.createRef();
+    this.state = { records: this.defaultRecords(), tab: 'all', metric: 'install', fileName: '', dragging: false, analyzed: false };
+  }
+
+  defaultRecords(){
+    const Y = 2026;
+    const d = (s) => s;
+    const R = (nom, equipe, debit, etat, planif, install, comm, sip) => ({nom, equipe, debit, etat, planif, install, comm, sip});
+    return [
+      R('KHAZNAOUI NOUHAILA','Hamza','20 Méga Fibre','ok','11/04/2026','11/04/2026','','SIP 525402661'),
+      R('ABDERRAHIM JABIR','Hamza','20 Méga Fibre','ok','11/04/2026','11/04/2026','client injoignable','SIP 525402489'),
+      R('MOHAMED NABTI','Hamza','20 Méga Fibre','Blocage client','11/04/2026','','Demande annulé','SIP 525402647'),
+      R('CHAHMOUD ABDELGHANI','Hamza','20 Méga Fibre','ok','11/04/2026','11/04/2026','Client indisponible','SIP 525402667'),
+      R('ACHCHAQ RACHID','Hamza','50 Méga Fibre','ok','11/04/2026','11/04/2026','client injoignable','SIP 525402668'),
+      R('OUMELKHEIRE ITMINE','Hamza','50 Méga Fibre','ok','13/04/2026','13/04/2026','Demande annulé','SIP 525402651'),
+      R('HASNA AIT SIDI HSSAIN','Hamza','50 Méga Fibre','ok','10/04/2026','09/04/2026','','SIP 525402664'),
+      R('SARA ZAKI','Hamza','20 Méga Fibre','ok','10/04/2026','09/04/2026','client injoignable','SIP 525402654'),
+      R('MECHAOURI MOHAMED','Hamza','20 Méga Fibre','ok','11/04/2026','11/04/2026','','SIP 525402659'),
+      R('CHAFYQ MOHAMED','Hamza','100 Méga Fibre','ok','13/04/2026','13/04/2026','','SIP 525402670'),
+      R('ZOUYENE SOMAYA','Hamza','50 Méga Fibre','ok','13/04/2026','13/04/2026','','SIP 525390794'),
+      R('AMINE GHANNACHI','Hamza','50 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402588'),
+      R('JAMILA EL JAMAI','Hamza','50 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402624'),
+      R('ANASS LABRIRHLI','Hamza','20 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402666'),
+      R('KHIRSANI AYOUB','Hamza','20 Méga Fibre','ok','10/04/2026','','','SIP 525402604'),
+      R('TIZMLIL NASSIMA','Hamza','50 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402641'),
+      R('HANANE ELGHARBI','Hamza','100 Méga Fibre','ok','14/04/2026','14/04/2026','Client installé','SIP 525402953'),
+      R('EL HAMAOUI NOUR EDDINE','Hamza','20 Méga Fibre','ok','14/04/2026','14/04/2026','Client installé','SIP 525403147'),
+      R('YASSINE BENNANI','Omar','50 Méga Fibre','ok','09/04/2026','09/04/2026','Client installé','SIP 525402701'),
+      R('SALMA IDRISSI','Omar','100 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402702'),
+      R('KARIM TAZI','Omar','20 Méga Fibre','Blocage client','11/04/2026','','client injoignable','SIP 525402703'),
+      R('NADIA FILALI','Omar','50 Méga Fibre','ok','11/04/2026','11/04/2026','','SIP 525402704'),
+      R('OMAR ALAMI','Omar','20 Méga Fibre','ok','13/04/2026','','','SIP 525402705'),
+      R('REDA BENJELLOUN','Mohammed','100 Méga Fibre','ok','10/04/2026','10/04/2026','','SIP 525402801'),
+      R('IMANE SAIDI','Mohammed','50 Méga Fibre','ok','11/04/2026','11/04/2026','Client installé','SIP 525402802'),
+      R('HAMZA OURICH','Mohammed','20 Méga Fibre','ok','12/04/2026','','Demande annulé','SIP 525402803'),
+      R('LATIFA NAJI','Mohammed','50 Méga Fibre','ok','13/04/2026','13/04/2026','','SIP 525402804')
+    ];
+  }
+
+  // ---------- helpers ----------
+  parseDate(s){ if(!s) return null; if(s instanceof Date) return s; const m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(String(s)); if(!m) return null; let y=+m[3]; if(y<100) y+=2000; return new Date(y,+m[2]-1,+m[1]); }
+  fmtDate(s){ const d=this.parseDate(s); if(!d) return '—'; return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); }
+  equipeShort(s){ if(!s) return '—'; const m=/equipe\s+([A-Za-zéèàâ'\-]+)/i.exec(String(s)); let n = m? m[1] : String(s); n=n.replace(/kssi\s*tech/ig,'').trim(); return n.charAt(0).toUpperCase()+n.slice(1).toLowerCase(); }
+  debitNum(s){ const m=/(\d+)\s*m[ée]ga/i.exec(String(s||'')); return m? +m[1] : null; }
+  debitShort(s){ const n=this.debitNum(s); return n? n+'M' : '—'; }
+  initials(name){ const p=String(name||'').trim().split(/\s+/); return ((p[0]||'?')[0]+((p[1]||'')[0]||'')).toUpperCase(); }
+  colorFor(name){ const c=['#16c79a','#5b8def','#9b7ce6','#e0876b','#d9a93e','#3fb6c4','#c46fa8']; let h=0; for(const ch of String(name)) h=(h*31+ch.charCodeAt(0))>>>0; return c[h%c.length]; }
+
+  status(r){
+    const comm=String(r.comm||'').toLowerCase();
+    const etat=String(r.etat||'').toLowerCase();
+    if(/annul/.test(comm)) return 'annule';
+    if(/blocage/.test(etat)) return 'bloque';
+    if(this.parseDate(r.install) || /install[ée]/.test(comm)) return 'installe';
+    if(this.parseDate(r.planif)) return 'planifie';
+    return 'attente';
+  }
+
+  statusMeta(k){
+    const M={
+      installe:{label:'Installé',bg:'#e4f7ef',color:'#16a06f'},
+      planifie:{label:'Planifié',bg:'#eceafe',color:'#6c5ce6'},
+      bloque:{label:'Bloqué',bg:'#fdecec',color:'#e0564f'},
+      annule:{label:'Annulé',bg:'#f1f2f6',color:'#8a90a3'},
+      attente:{label:'En attente',bg:'#fdf3e3',color:'#d99a2b'}
+    };
+    return M[k]||M.attente;
+  }
+
+  // ---------- excel ----------
+  pickFile = () => { if(this.fileRef.current) this.fileRef.current.click(); };
+  onDragOver = (e) => { e.preventDefault(); if(!this.state.dragging) this.setState({dragging:true}); };
+  onDrop = (e) => { e.preventDefault(); this.setState({dragging:false}); const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) this.readFile(f); };
+  onFile = (e) => { const f=e.target.files&&e.target.files[0]; if(f) this.readFile(f); };
+
+  readFile(file){
+    const XLSX = window.XLSX;
+    if(!XLSX){ alert('Lecteur Excel en cours de chargement, réessayez.'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const wb = XLSX.read(ev.target.result, {type:'array'});
+        const records = [];
+        wb.SheetNames.forEach(sn => {
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header:1, raw:false, defval:''});
+          if(!rows.length) return;
+          let hi = rows.findIndex(r => r.some(c => /\bnom\b/i.test(String(c))) && r.some(c=>/equipe/i.test(String(c))));
+          if(hi<0) hi = rows.findIndex(r => r.some(c=>/equipe/i.test(String(c))));
+          if(hi<0) return;
+          const head = rows[hi].map(c => String(c||'').trim().toLowerCase());
+          const find = (re) => head.findIndex(h => re.test(h));
+          const idx = {
+            nom: find(/^nom$/)>=0?find(/^nom$/):find(/nom/),
+            equipe: find(/equipe/),
+            debit: find(/debit|d[ée]bit/),
+            etat: find(/^etat$|^état$|etat/),
+            planif: find(/planif/),
+            install: find(/installation|installati|install/),
+            comm: find(/^comm|commentaire|observ/),
+            sip: find(/^sip$|sip/)
+          };
+          for(let i=hi+1;i<rows.length;i++){
+            const row=rows[i]; if(!row) continue;
+            const get=(k)=> idx[k]>=0 ? String(row[idx[k]]||'').trim() : '';
+            const nom=get('nom');
+            if(!nom) continue;
+            records.push({
+              nom, equipe:get('equipe'), debit:get('debit'), etat:get('etat'),
+              planif:get('planif'), install:get('install'), comm:get('comm'),
+              sip: get('sip') ? ('SIP '+get('sip')) : ''
+            });
+          }
+        });
+        if(!records.length){ alert("Aucune ligne reconnue. Vérifiez que le fichier contient les colonnes NOM, EQUIPE, ETAT, DEBIT, DATE D'INSTALLATION…"); return; }
+        this.setState({ records, fileName: file.name, tab:'all' });
+      } catch(err){ console.error(err); alert('Impossible de lire ce fichier Excel.'); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------- chart ----------
+  buildChart(records, metric){
+    const accent = this.props.accent || '#6c5ce6';
+    const field = metric==='planif' ? 'planif' : 'install';
+    const dated = records.map(r => ({d:this.parseDate(r[field]), r})).filter(x=>x.d);
+    if(!dated.length){
+      return React.createElement('div',{style:{height:240,display:'flex',alignItems:'center',justifyContent:'center',color:'#b6bac6',fontSize:14,fontWeight:600}},'Aucune date disponible pour cette mesure');
+    }
+    const times = dated.map(x=>x.d.getTime());
+    let min=new Date(Math.min(...times)), max=new Date(Math.max(...times));
+    min=new Date(min.getFullYear(),min.getMonth(),min.getDate());
+    max=new Date(max.getFullYear(),max.getMonth(),max.getDate());
+    const days=[]; for(let t=new Date(min); t<=max; t.setDate(t.getDate()+1)) days.push(new Date(t));
+    const counts = days.map(day => dated.filter(x => x.d.getDate()===day.getDate() && x.d.getMonth()===day.getMonth()).length);
+    const maxC = Math.max(...counts,1);
+    const peak = counts.indexOf(maxC);
+    const dot=10, gap=5;
+    const plotH = maxC*(dot+gap)+6;
+
+    const yTicks=[]; const steps=Math.min(maxC,4); for(let i=steps;i>=0;i--){ yTicks.push(Math.round(maxC*i/steps)); }
+    const yAxis = React.createElement('div',{style:{display:'flex',flexDirection:'column',justifyContent:'space-between',height:plotH,paddingBottom:2,marginRight:6}},
+      yTicks.map((v,i)=>React.createElement('div',{key:i,style:{fontSize:12,color:'#b6bac6',fontWeight:600,lineHeight:1}},v))
+    );
+
+    const cols = days.map((day,i)=>{
+      const c=counts[i], isPeak=i===peak;
+      const dots=[];
+      for(let k=0;k<c;k++){
+        dots.push(React.createElement('div',{key:k,style:{width:dot,height:dot,borderRadius:'50%',background:isPeak?accent:'#bfe9d6',margin:'0 auto'}}));
+      }
+      const pill = isPeak ? React.createElement('div',{style:{position:'absolute',bottom:plotH+8,left:'50%',transform:'translateX(-50%)',background:accent,color:'#fff',fontSize:11.5,fontWeight:700,padding:'3px 9px',borderRadius:8,whiteSpace:'nowrap',boxShadow:'0 4px 10px '+accent+'55'}}, maxC+' inst.') : null;
+      return React.createElement('div',{key:i,style:{flex:'1 1 0',minWidth:0,position:'relative',display:'flex',flexDirection:'column',justifyContent:'flex-end',alignItems:'center',height:plotH,gap:gap}}, pill, dots);
+    });
+
+    const dash = React.createElement('div',{style:{position:'absolute',top:0,left:0,right:0,borderTop:'1.5px dashed '+accent+'66',pointerEvents:'none'}});
+
+    const plot = React.createElement('div',{style:{position:'relative',flex:1,minWidth:0}},
+      dash,
+      React.createElement('div',{style:{display:'flex',alignItems:'flex-end',gap:2,height:plotH}}, cols)
+    );
+
+    const labelStep = Math.ceil(days.length/8);
+    const xLabels = React.createElement('div',{style:{display:'flex',gap:2,marginTop:12,marginLeft:30}},
+      days.map((day,i)=>React.createElement('div',{key:i,style:{flex:'1 1 0',textAlign:'center',fontSize:11.5,color:i===peak?'#fff':'#9398a8',fontWeight:i===peak?700:600}},
+        React.createElement('span',{style:i===peak?{background:accent,padding:'3px 8px',borderRadius:7}:{}}, (i%labelStep===0||i===peak)? (String(day.getDate()).padStart(2,'0')+'/'+String(day.getMonth()+1).padStart(2,'0')) : '')
+      ))
+    );
+
+    return React.createElement('div',{style:{paddingTop:34}},
+      React.createElement('div',{style:{display:'flex'}}, yAxis, plot),
+      xLabels
+    );
+  }
+
+  // ---------- render ----------
+  renderVals(){
+    const accent = this.props.accent || '#6c5ce6';
+    const recs = this.state.records;
+    const withStatus = recs.map(r => ({...r, _s: this.status(r)}));
+    const count = (k) => withStatus.filter(r=>r._s===k).length;
+    const total = recs.length;
+    const installe = count('installe');
+    const planifie = count('planifie');
+    const bloque = count('bloque');
+    const annule = count('annule');
+    const taux = total? Math.round(installe/total*100):0;
+
+    // debit breakdown
+    const debits=[20,50,100];
+    const dColors={20:'#16c79a',50:'#5b8def',100:accent};
+    const maxDeb = Math.max(1,...debits.map(d=>recs.filter(r=>this.debitNum(r.debit)===d).length));
+    const debitList = debits.map(d=>{
+      const c=recs.filter(r=>this.debitNum(r.debit)===d).length;
+      return {label:d+' Méga Fibre', count:c, pct: total?Math.round(c/total*100):0, width:Math.round(c/maxDeb*100)+'%', color:dColors[d]};
+    });
+
+    // equipe breakdown
+    const names=[...new Set(withStatus.map(r=>this.equipeShort(r.equipe)))].filter(n=>n&&n!=='—');
+    const equipeList = names.map(n=>{
+      const sub=withStatus.filter(r=>this.equipeShort(r.equipe)===n);
+      return {name:n, initials:this.initials(n), color:this.colorFor(n), total:sub.length, installe:sub.filter(r=>r._s==='installe').length};
+    }).sort((a,b)=>b.total-a.total);
+
+    // tabs
+    const tabDefs=[['all','Toutes',total],['installe','Installées',installe],['planifie','Planifiées',planifie],['bloque','Bloquées',bloque],['annule','Annulées',annule]];
+    const tabs = tabDefs.map(([k,label,cnt])=>{
+      const active=this.state.tab===k;
+      return {label,count:cnt,
+        bg: active? accent : '#f4f5f8',
+        color: active? '#fff' : '#6c7184',
+        badgeBg: active? 'rgba(255,255,255,.25)' : '#e6e8ef',
+        badgeColor: active? '#fff' : '#8a90a3',
+        onClick: ()=>this.setState({tab:k})};
+    });
+
+    // rows
+    let filtered = withStatus;
+    if(this.state.tab!=='all') filtered = withStatus.filter(r=>r._s===this.state.tab);
+    const rows = filtered.slice(0,8).map(r=>{
+      const m=this.statusMeta(r._s);
+      return {nom:r.nom, sip:r.sip||'—', equipe:this.equipeShort(r.equipe), debit:this.debitShort(r.debit),
+        planif:this.fmtDate(r.planif), initials:this.initials(r.nom), avatarBg:this.colorFor(r.nom),
+        statusLabel:m.label, statusBg:m.bg, statusColor:m.color};
+    });
+
+    // priority = upcoming planned (planifié, sorted by date)
+    const priority = withStatus.filter(r=>r._s==='planifie').sort((a,b)=>{
+      const da=this.parseDate(a.planif), db=this.parseDate(b.planif); return (da?da.getTime():0)-(db?db.getTime():0);
+    }).slice(0,4).map(r=>({nom:r.nom, equipe:this.equipeShort(r.equipe), debit:this.debitShort(r.debit),
+      planif:this.fmtDate(r.planif), initials:this.initials(r.nom), avatarBg:this.colorFor(r.nom)}));
+
+    const hexA = (h,a)=>{ const n=parseInt(h.slice(1),16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; };
+
+    const injoign = recs.filter(r=>/injoign/i.test(r.comm)).length;
+    const aRelancer = recs.filter(r=>/injoign|indispon/i.test(r.comm)).length;
+    const baseInsight = taux+"% de taux d'installation. "+injoign+" client(s) injoignable(s) et "+bloque+" demande(s) bloquée(s) à relancer pour progresser.";
+    const deepInsight = "Recommandation : relancez les "+aRelancer+" client(s) injoignable(s)/indisponible(s) sous 48 h, puis replanifiez les "+planifie+" installation(s) en attente pour viser 90 %.";
+
+    return {
+      accent,
+      accentSoft: hexA(accent,0.12),
+      accentShadow: hexA(accent,0.35),
+      accentBorder: hexA(accent,0.22),
+      insight: this.state.analyzed ? deepInsight : baseInsight,
+      runLabel: this.state.analyzed ? "Masquer l'analyse" : "Lancer l'analyse",
+      runAnalysis: ()=>this.setState(s=>({analyzed:!s.analyzed})),
+      kpiTotal: total,
+      deltaTotal: '+'+Math.max(1,Math.round(total*0.12)),
+      kpiInstalle: installe,
+      kpiTaux: taux,
+      kpiBloque: bloque,
+      kpiAretraiter: annule+bloque,
+      periodLabel: this.state.records===this.defaultRecords ? 'Semaine 15–16' : 'Semaine 15–16',
+      metricLabel: this.state.metric==='planif' ? 'Planifications' : 'Installations',
+      toggleMetric: ()=>this.setState(s=>({metric: s.metric==='install'?'planif':'install'})),
+      chart: this.buildChart(recs, this.state.metric),
+      tabs, rows, priorityTasks: priority, debitList, equipeList,
+      fileRef: this.fileRef, onFile: this.onFile, pickFile: this.pickFile, onDragOver: this.onDragOver, onDrop: this.onDrop,
+      dropTitle: this.state.fileName ? ('✓ '+this.state.fileName) : 'Aucun fichier importé',
+      dropBorder: this.state.dragging ? accent : '#c9c4ea'
+    };
+  }
+}
+</script>
+</body>
+</html>

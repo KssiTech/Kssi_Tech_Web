@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/Footer';
+import { withBase } from '@/lib/utils';
 
 import type {
   CanonicalRecord, ProcessedRecord, Status, TabKey, DashView, AIModel, ChatMsg,
@@ -905,7 +906,7 @@ const Dashboard: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }} onClick={() => navigate('/')}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 42, height: 42, borderRadius: 13, background: '#15171f', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(20,22,30,.22)', flexShrink: 0 }}>
-                  <img src="/logo_Khwarizmia_light.png" alt="KSSI Tech" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                  <img src={withBase("/logo_Khwarizmia_light.png")} alt="KSSI Tech" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                 </div>
                 <div style={{ lineHeight: 1.15 }}>
                   <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -.4, color: '#1d2030' }}>KSSI TECH</div>
