@@ -9,7 +9,6 @@ import { STATUS_META } from '@/types/dashboard';
 import {
   buildDailyBars, buildWeeklyBars, buildMonthlyBars,
   buildStatusDonut, buildDelayHistogram, buildWeekdayHeatmap,
-  equipeShort, debitNum,
 } from '@/hooks/useExcelData';
 
 const ACCENT = '#6c5ce6';
@@ -97,7 +96,7 @@ export const InstallationsOverTime: React.FC<{ records: ProcessedRecord[] }> = (
     >
       <ResponsiveContainer width="100%" height={220}>
         {mode === 'cumul' ? (
-          <AreaChart data={daily} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="cumGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={ACCENT} stopOpacity={0.25} />
@@ -105,7 +104,7 @@ export const InstallationsOverTime: React.FC<{ records: ProcessedRecord[] }> = (
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f8" vertical={false} />
-            <XAxis dataKey="date" tick={axisStyle} axisLine={false} tickLine={false} />
+            <XAxis dataKey={xKey} tick={axisStyle} axisLine={false} tickLine={false} />
             <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
             <Tooltip contentStyle={tooltipStyle} />
             <Area type="monotone" dataKey="cumul" stroke={ACCENT} fill="url(#cumGrad)"
@@ -223,13 +222,17 @@ export const TeamLeaderboard: React.FC<{
 }> = ({ teams, onTeamClick }) => {
   const [metric, setMetric] = useState<'taux' | 'installe' | 'avgDelay'>('taux');
 
-  const data = [...teams].map(t => ({
-    name: t.name,
-    taux: t.taux,
-    installe: t.installe,
-    avgDelay: t.avgDelay ?? 0,
-    color: t.color,
-  }));
+  // Exclude teams without delay data when metric === 'avgDelay'
+  const data = [...teams]
+    .filter(t => metric !== 'avgDelay' || t.avgDelay !== null)
+    .map(t => ({
+      name: t.name,
+      taux: t.taux,
+      installe: t.installe,
+      avgDelay: t.avgDelay ?? 0,
+      hasDelay: t.avgDelay !== null,
+      color: t.color,
+    }));
 
   const barColor = (val: number, key: string) => {
     if (key === 'avgDelay') return val > 5 ? '#e0564f' : val > 2 ? '#d99a2b' : '#16c79a';
@@ -255,35 +258,41 @@ export const TeamLeaderboard: React.FC<{
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
-        {data.map((t, i) => {
-          const val = t[metric];
-          const max = Math.max(...data.map(d => d[metric]), 1);
-          const pct = Math.round((val / max) * 100);
-          const color = barColor(val, metric);
-          return (
-            <div key={i}
-              onClick={() => onTeamClick?.(t.name)}
-              style={{ cursor: onTeamClick ? 'pointer' : 'default' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: t.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
-                    {i + 1}
+      {data.length === 0 ? (
+        <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b6bac6', fontSize: 13, fontWeight: 600 }}>
+          Aucune donnée de délai disponible
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+          {data.map((t, i) => {
+            const val = t[metric as keyof typeof t] as number;
+            const max = Math.max(...data.map(d => d[metric as keyof typeof d] as number), 1);
+            const pct = Math.max(0, Math.round((val / max) * 100));
+            const color = barColor(val, metric);
+            return (
+              <div key={i}
+                onClick={() => onTeamClick?.(t.name)}
+                style={{ cursor: onTeamClick ? 'pointer' : 'default' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: t.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
+                      {i + 1}
+                    </div>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: '#1d2030' }}>{t.name}</span>
                   </div>
-                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#1d2030' }}>{t.name}</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color }}>
+                    {metric === 'taux' ? `${val}%` : metric === 'avgDelay' ? `${val}j` : val}
+                  </span>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 800, color }}>
-                  {metric === 'taux' ? `${val}%` : metric === 'avgDelay' ? `${val}j` : val}
-                </span>
+                <div style={{ height: 7, borderRadius: 4, background: '#f3f4f8', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width .6s ease' }} />
+                </div>
               </div>
-              <div style={{ height: 7, borderRadius: 4, background: '#f3f4f8', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width .6s ease' }} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </ChartCard>
   );
 };
@@ -323,10 +332,16 @@ export const DelayHistogram: React.FC<{ records: ProcessedRecord[] }> = ({ recor
 // ─── 5. Weekday heatmap (bar) ─────────────────────────────────────────────────
 export const WeekdayHeatmap: React.FC<{ records: ProcessedRecord[] }> = ({ records }) => {
   const data = buildWeekdayHeatmap(records);
+  const hasData = data.some(d => d.count > 0);
   const max = Math.max(...data.map(d => d.count), 1);
 
   return (
     <ChartCard title="Activité par jour" subtitle="Installations réalisées par jour de semaine">
+      {!hasData ? (
+        <div style={{ height: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#b6bac6', fontSize: 13, fontWeight: 600 }}>
+          Aucune installation avec date disponible
+        </div>
+      ) : (
       <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 8 }}>
         {data.map((d, i) => {
           const pct = Math.round((d.count / max) * 100);
@@ -346,6 +361,7 @@ export const WeekdayHeatmap: React.FC<{ records: ProcessedRecord[] }> = ({ recor
           );
         })}
       </div>
+      )}
     </ChartCard>
   );
 };

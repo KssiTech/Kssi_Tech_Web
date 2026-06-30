@@ -17,11 +17,12 @@ export const KPICard: React.FC<KPICardProps> = ({
   label, value, subtitle, trend, sparkData, accentColor = '#6c5ce6',
   bgColor, badge, loading = false,
 }) => {
-  const trendPositive = trend !== undefined && trend !== null && trend >= 0;
+  const trendPositive = trend !== undefined && trend !== null && trend > 0;
+  const trendNeutral  = trend === 0;
   const trendColor = trend === null || trend === undefined ? '#9398a8'
-    : trend >= 0 ? '#16a06f' : '#e0564f';
+    : trend > 0 ? '#16a06f' : trend < 0 ? '#e0564f' : '#9398a8';
   const trendBg = trend === null || trend === undefined ? '#f4f5f8'
-    : trend >= 0 ? '#e4f7ef' : '#fdecec';
+    : trend > 0 ? '#e4f7ef' : trend < 0 ? '#fdecec' : '#f4f5f8';
 
   if (loading) {
     return (
@@ -62,7 +63,7 @@ export const KPICard: React.FC<KPICardProps> = ({
           )}
           {trend !== undefined && trend !== null && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: trendColor, background: trendBg, padding: '3px 8px', borderRadius: 8 }}>
-              <span>{trendPositive ? '↑' : '↓'}</span>
+              <span>{trendNeutral ? '→' : trendPositive ? '↑' : '↓'}</span>
               <span>{Math.abs(trend)}%</span>
             </div>
           )}

@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Filters } from '@/types/dashboard';
 import type { ProcessedRecord } from '@/types/dashboard';
-import { equipeShort, debitNum } from '@/hooks/useExcelData';
 import { STATUS_META } from '@/types/dashboard';
 
 interface FiltersBarProps {
@@ -49,8 +48,8 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({ filters, onChange, recor
 
   const teams    = [...new Set(records.map(r => r._teamName).filter(n => n && n !== '—'))].sort();
   const debits   = [...new Set(records.map(r => r._debitNum).filter(Boolean))].sort((a, b) => (a as number) - (b as number)) as number[];
-  const sousTypes = [...new Set(records.map(r => r.sousType).filter(Boolean))].sort();
-  const planneurs = [...new Set(records.map(r => r.planneur).filter(Boolean))].sort();
+  const sousTypes = [...new Set(records.map(r => r.sub_type).filter(Boolean))].sort();
+  const planneurs = [...new Set(records.map(r => r.planner).filter(Boolean))].sort();
   const weeks    = [...new Set(records.map(r => r._week).filter(Boolean))].sort((a, b) => (a as number) - (b as number)) as number[];
   const months   = [...new Set(records.map(r => r._month).filter(Boolean))].sort((a, b) => (a as number) - (b as number)) as number[];
   const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];

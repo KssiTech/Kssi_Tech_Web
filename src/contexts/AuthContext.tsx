@@ -125,27 +125,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
-    // Demo credentials — bypass Supabase for local testing
-    const MOCK_USERS: Record<string, { id: string; name: string; role: string }> = {
-      'demo@kssitech.ma':       { id: 'demo-001', name: 'Hamza Benali',      role: 'secretaire' },
-      'secretaire@kssitech.ma': { id: 'demo-002', name: 'Aicha Benmoussa',   role: 'secretaire' },
-      'directeur@kssitech.ma':  { id: 'demo-003', name: 'Mohammed El Fassi', role: 'directeur'  },
-      'client@kssitech.ma':     { id: 'demo-004', name: 'Ahmed TAZI',        role: 'client'     },
-    }
-    const mock = MOCK_USERS[email]
-    if (mock && password === 'kssi2024') {
-      const mockUser = {
-        id: mock.id,
-        aud: 'authenticated',
-        email,
-        created_at: new Date().toISOString(),
-        app_metadata: {},
-        user_metadata: { full_name: mock.name, role: mock.role },
-        role: 'authenticated',
-      } as unknown as User
-      setUser(mockUser)
-      setSession(null)
-      return { error: null }
+    // Demo credentials — DEV only bypass (never ships to production)
+    if (import.meta.env.DEV) {
+      const MOCK_USERS: Record<string, { id: string; name: string; role: string }> = {
+        'demo@kssitech.ma':       { id: 'demo-001', name: 'Hamza Benali',      role: 'secretaire' },
+        'secretaire@kssitech.ma': { id: 'demo-002', name: 'Aicha Benmoussa',   role: 'secretaire' },
+        'directeur@kssitech.ma':  { id: 'demo-003', name: 'Mohammed El Fassi', role: 'directeur'  },
+        'client@kssitech.ma':     { id: 'demo-004', name: 'Ahmed TAZI',        role: 'client'     },
+      }
+      const mock = MOCK_USERS[email]
+      if (mock && password === 'kssi2024') {
+        const mockUser = {
+          id: mock.id,
+          aud: 'authenticated',
+          email,
+          created_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: { full_name: mock.name, role: mock.role },
+          role: 'authenticated',
+        } as unknown as User
+        setUser(mockUser)
+        setSession(null)
+        return { error: null }
+      }
     }
 
     try {
@@ -192,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    if (user?.id?.startsWith('demo-')) {
+    if (import.meta.env.DEV && user?.id?.startsWith('demo-')) {
       setUser(null)
       setSession(null)
       return

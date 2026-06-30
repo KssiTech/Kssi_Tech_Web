@@ -491,7 +491,9 @@ export function buildWeeklyBars(records: ProcessedRecord[]): WeekBar[] {
     if (r._status === 'installe') map[k].i++;
     if (r._status === 'planifie') map[k].p++;
   });
-  return Object.entries(map).sort().map(([week, v]) => ({ week, installe: v.i, planifie: v.p }));
+  return Object.entries(map)
+    .sort(([a], [b]) => +a.slice(1) - +b.slice(1))
+    .map(([week, v]) => ({ week, installe: v.i, planifie: v.p }));
 }
 
 export function buildMonthlyBars(records: ProcessedRecord[]): MonthBar[] {
@@ -513,7 +515,11 @@ export function buildSparkline(records: ProcessedRecord[], status: Status, days 
     const day = new Date(now - (days - 1 - i) * 86400000);
     const count = records.filter(r => {
       const d = r._installDate || r._planifDate;
-      return d && d.getDate() === day.getDate() && d.getMonth() === day.getMonth() && r._status === status;
+      return d
+        && d.getFullYear() === day.getFullYear()
+        && d.getMonth() === day.getMonth()
+        && d.getDate() === day.getDate()
+        && r._status === status;
     }).length;
     return { v: count };
   });
@@ -651,9 +657,18 @@ export function aiResponse(
   }
 
   if (/prévisio|forecast|prochain/i.test(ql)) {
-    const days = new Set(records.filter(r => r._installDate).map(r => r._installDate!.toDateString())).size;
-    const avg  = days > 0 ? Math.round(records.filter(r => r._installDate).length / days) : 0;
-    return `Rythme moyen : ${avg} installation(s)/jour\nVolume estimé semaine prochaine : ${avg * 5} installations\nTaux prévu : ${Math.min(100, kpis.taux + Math.round((avg * 5 / Math.max(kpis.total, 1)) * 100))}%`;
+    const byDay: Record<string, number> = {};
+    records.filter(r => r._installDate).forEach(r => {
+      const k = r._installDate!.toISOString().slice(0, 10);
+      byDay[k] = (byDay[k] || 0) + 1;
+    });
+    const vals = Object.values(byDay);
+    const avgDaily = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 1;
+    const nextWeek = Math.round(avgDaily * 5);
+    const pending = kpis.planifie + kpis.attente;
+    const completionProb = pending > 0 ? Math.min(100, Math.round((nextWeek / pending) * 100)) : 100;
+    const predictedRate = kpis.total > 0 ? Math.min(100, Math.round(((kpis.installe + Math.min(nextWeek, pending)) / kpis.total) * 100)) : 0;
+    return `Rythme moyen : ${avgDaily.toFixed(1)} installation(s)/jour\nVolume estimé semaine prochaine : ${nextWeek} installations\nProbabilité de complétion : ${completionProb}%\nTaux prévu fin de période : ${predictedRate}%`;
   }
 
   // Schema-aware help text listing only available features
@@ -670,4 +685,85 @@ export function aiResponse(
   ].filter(Boolean) as string[];
 
   return `Je peux vous aider sur :\n${capabilities.join('\n')}\n\nQuelle analyse souhaitez-vous ?`;
+}
+
+// ─── Real Claude API call ─────────────────────────────────────────────────────
+
+function buildFtthContext(
+  records: ProcessedRecord[],
+  kpis: KPIData,
+  teams: TeamStats[],
+  caps: DataCapabilities,
+): string {
+  const teamLines = teams.map(t =>
+    `• ${t.name}: ${t.installe}/${t.total} installées (${t.taux}%)${caps.hasDelayAnalysis && t.avgDelay !== null ? `, délai moy. ${t.avgDelay}j` : ''}`
+  ).join('\n');
+
+  return `Tu es l'assistant IA du tableau de bord KSSI TECH, spécialisé dans le suivi des installations fibre optique FTTH au Maroc.
+
+DONNÉES ACTUELLES (${records.length} enregistrements) :
+- Total demandes : ${kpis.total}
+- Installées : ${kpis.installe} (${kpis.taux}%)
+- Planifiées : ${kpis.planifie}
+- Bloquées : ${kpis.bloque}
+- Annulées : ${kpis.annule}
+- En attente : ${kpis.attente}
+${caps.hasDelayAnalysis ? `- Délai moyen : ${kpis.avgDelay ?? '—'} jours\n- SLA compliance (≤3j) : ${kpis.slaCompliance}%` : ''}
+${caps.hasComment ? `- Clients injoignables : ${kpis.injoignables}` : ''}
+
+ÉQUIPES :
+${teamLines || '(non disponible)'}
+
+Réponds en français, de façon concise et opérationnelle. Si une question dépasse les données disponibles, dis-le clairement.`;
+}
+
+export async function aiResponseAsync(
+  q:       string,
+  records: ProcessedRecord[],
+  kpis:    KPIData,
+  teams:   TeamStats[],
+  caps:    DataCapabilities,
+  model:   'kssi' | 'gpt' | 'deepseek',
+): Promise<string> {
+  if (model === 'kssi') {
+    return aiResponse(q, records, kpis, teams, caps);
+  }
+
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined;
+  if (!apiKey) {
+    return `⚠️ Clé API Anthropic non configurée.\n\nAjoutez VITE_ANTHROPIC_API_KEY dans votre fichier .env pour activer ${model === 'gpt' ? 'Claude Pro' : 'Claude Fast'}.\n\nEn attendant, voici la réponse KSSI AI :\n\n${aiResponse(q, records, kpis, teams, caps)}`;
+  }
+
+  const claudeModel = model === 'gpt' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
+  const systemPrompt = buildFtthContext(records, kpis, teams, caps);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: claudeModel,
+        max_tokens: 512,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: q }],
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { error?: { message?: string } }).error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json() as { content: { type: string; text: string }[] };
+    const text = data.content.find(b => b.type === 'text')?.text || '';
+    return text || 'Réponse vide reçue.';
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Erreur inconnue';
+    return `❌ Erreur API Claude : ${msg}\n\nRéponse KSSI AI (local) :\n\n${aiResponse(q, records, kpis, teams, caps)}`;
+  }
 }

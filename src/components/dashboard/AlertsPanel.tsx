@@ -39,6 +39,7 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({ alerts }) => {
 
   const errors   = alerts.filter(a => a.type === 'error').length;
   const warnings = alerts.filter(a => a.type === 'warning').length;
+  const infos    = alerts.filter(a => a.type === 'info').length;
 
   return (
     <div style={{
@@ -64,6 +65,11 @@ export const AlertsPanel: React.FC<AlertsPanelProps> = ({ alerts }) => {
           {warnings > 0 && (
             <span style={{ fontSize: 11.5, fontWeight: 700, background: '#fdf3e3', color: '#d99a2b', padding: '3px 10px', borderRadius: 8 }}>
               {warnings} attention{warnings > 1 ? 's' : ''}
+            </span>
+          )}
+          {infos > 0 && errors === 0 && warnings === 0 && (
+            <span style={{ fontSize: 11.5, fontWeight: 700, background: '#e4eeff', color: '#5b8def', padding: '3px 10px', borderRadius: 8 }}>
+              {infos} info{infos > 1 ? 's' : ''}
             </span>
           )}
         </div>

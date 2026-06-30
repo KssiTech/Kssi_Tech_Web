@@ -161,7 +161,7 @@ export const SchemaPanel: React.FC<SchemaPanelProps> = ({ schema, profile, caps,
               </div>
               {mappedFields.map(([field, normName]) => {
                 const def     = FIELD_BY_KEY.get(field);
-                const fillRate = profile.fillRates[field] ?? 1;
+                const fillRate = profile.fillRates[field] ?? 0;
                 const pct     = Math.round(fillRate * 100);
                 const color   = pct >= 90 ? '#16a06f' : pct >= 60 ? '#d99a2b' : '#e0564f';
                 return (

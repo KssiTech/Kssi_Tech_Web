@@ -15,7 +15,7 @@ import {
   parseDate, fmtDate, fmtDateLong, extractTeamName, extractDebitNum, debitShort,
   initials, colorFor, nowTs, processRecords, applyFilters,
   computeKPIs, computeTeamStats, generateAlerts, generateInsights, computeForecast,
-  buildSparkline, aiResponse, parseExcelBuffer,
+  buildSparkline, aiResponseAsync, parseExcelBuffer,
 } from '@/hooks/useExcelData';
 
 import type { SchemaDetectionResult } from '@/lib/schemaDetector';
@@ -167,7 +167,8 @@ const Dashboard: React.FC = () => {
   const [drillDebit,  setDrillDebit]  = useState<string | null>(null);
 
   // ── AI state ──
-  const [aiModel,  setAiModel]  = useState<AIModel>('kssi');
+  const [aiModel,    setAiModel]    = useState<AIModel>('kssi');
+  const [aiThinking, setAiThinking] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([
     { role: 'ai', text: 'Bonjour ! Je suis l\'assistant KSSI AI. Importez un fichier Excel ou posez-moi une question sur les données actuelles.', ts: nowTs() },
   ]);
@@ -389,15 +390,18 @@ const Dashboard: React.FC = () => {
   const onDrop     = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) readFile(f); }, [readFile]);
 
   // ── AI ──
-  const sendMessage = useCallback((text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || aiThinking) return;
     setChatMsgs(prev => [...prev, { role: 'user', text: text.trim(), ts: nowTs() }]);
     setAiInput('');
-    setTimeout(() => {
-      const resp = aiResponse(text, records, kpis, teams, caps);
+    setAiThinking(true);
+    try {
+      const resp = await aiResponseAsync(text, records, kpis, teams, caps, aiModel);
       setChatMsgs(prev => [...prev, { role: 'ai', text: resp, ts: nowTs() }]);
-    }, 380);
-  }, [records, kpis, teams, caps]);
+    } finally {
+      setAiThinking(false);
+    }
+  }, [records, kpis, teams, caps, aiModel, aiThinking]);
 
   const handleInputKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(aiInput); }
@@ -951,9 +955,17 @@ const Dashboard: React.FC = () => {
                   🔴 {alerts.filter(a => a.type === 'error').length} alerte(s)
                 </div>
               )}
-              <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(30,35,60,.06)', color: '#6c7184', cursor: 'pointer', position: 'relative' }}>
-                🔔<span style={{ position: 'absolute', top: 8, right: 10, width: 7, height: 7, background: '#ef5b54', borderRadius: '50%', border: '1.5px solid #fff' }} />
-              </div>
+              {alerts.length > 0 && (
+                <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(30,35,60,.06)', color: '#6c7184', cursor: 'pointer', position: 'relative' }}
+                  onClick={() => { setView('overview'); setDashSection('forecast'); }}
+                  title={`${alerts.length} alerte${alerts.length > 1 ? 's' : ''} active${alerts.length > 1 ? 's' : ''}`}
+                >
+                  🔔
+                  {alerts.filter(a => a.type === 'error').length > 0 && (
+                    <span style={{ position: 'absolute', top: 8, right: 10, width: 7, height: 7, background: '#ef5b54', borderRadius: '50%', border: '1.5px solid #fff' }} />
+                  )}
+                </div>
+              )}
               <a href="https://wa.me/212661979129" target="_blank" rel="noopener noreferrer"
                 style={{ padding: '8px 14px', borderRadius: 10, background: '#dcfce7', color: '#16a34a', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}>
                 💬 WhatsApp
@@ -1490,10 +1502,24 @@ const Dashboard: React.FC = () => {
                     <div style={{ width: 34, height: 34, borderRadius: 10, background: hexA(ACCENT, .12), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🤖</div>
                   </div>
                   <div style={{ display: 'flex', gap: 3, background: 'rgba(255,255,255,.7)', padding: 3, borderRadius: 10, marginBottom: 10 }}>
-                    {(['kssi', 'gpt', 'deepseek'] as AIModel[]).map(k => (
-                      <div key={k} onClick={() => setAiModel(k)}
-                        style={{ flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 8, background: aiModel === k ? hexA(ACCENT, .15) : 'transparent', color: aiModel === k ? ACCENT : '#9398a8', fontSize: 10.5, fontWeight: aiModel === k ? 700 : 600, cursor: 'pointer', transition: 'all .15s' }}>
-                        {k === 'kssi' ? 'KSSI AI' : k === 'gpt' ? 'GPT' : 'DeepSeek'}
+                    {([
+                      { k: 'kssi',     label: 'KSSI AI',    available: true,  tip: 'Moteur local FTTH — fonctionne hors ligne' },
+                      { k: 'gpt',      label: 'Claude Pro',  available: false, tip: 'Nécessite VITE_ANTHROPIC_API_KEY' },
+                      { k: 'deepseek', label: 'Claude Fast', available: false, tip: 'Nécessite VITE_ANTHROPIC_API_KEY' },
+                    ] as { k: AIModel; label: string; available: boolean; tip: string }[]).map(({ k, label, available, tip }) => (
+                      <div key={k}
+                        onClick={() => available ? setAiModel(k) : undefined}
+                        title={tip}
+                        style={{
+                          flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 8,
+                          background: aiModel === k ? hexA(ACCENT, .15) : 'transparent',
+                          color: aiModel === k ? ACCENT : available ? '#9398a8' : '#c8cad4',
+                          fontSize: 10.5, fontWeight: aiModel === k ? 700 : 600,
+                          cursor: available ? 'pointer' : 'not-allowed',
+                          transition: 'all .15s',
+                          opacity: available ? 1 : 0.55,
+                        }}>
+                        {label}{!available && ' 🔒'}
                       </div>
                     ))}
                   </div>
@@ -1522,6 +1548,16 @@ const Dashboard: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                  {aiThinking && (
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 7, background: hexA(ACCENT, .12), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0 }}>🤖</div>
+                      <div style={{ padding: '9px 14px', borderRadius: '12px 12px 12px 4px', background: 'rgba(255,255,255,.92)', display: 'flex', gap: 4, alignItems: 'center' }}>
+                        {[0, 1, 2].map(j => (
+                          <div key={j} style={{ width: 6, height: 6, borderRadius: '50%', background: ACCENT, opacity: 0.6, animation: `pulse 1s ${j * 0.2}s infinite` }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <div ref={chatEndRef} />
                 </div>
                 {/* Input */}
@@ -1535,8 +1571,8 @@ const Dashboard: React.FC = () => {
                       style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 12.5, fontWeight: 500, color: '#1d2030', outline: 'none' }}
                     />
                     <div onClick={() => sendMessage(aiInput)}
-                      style={{ width: 28, height: 28, borderRadius: 8, background: aiInput.trim() ? ACCENT : '#e4e6ef', color: aiInput.trim() ? '#fff' : '#b6bac6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: aiInput.trim() ? 'pointer' : 'default', transition: 'all .15s' }}>
-                      ➤
+                      style={{ width: 28, height: 28, borderRadius: 8, background: (aiInput.trim() && !aiThinking) ? ACCENT : '#e4e6ef', color: (aiInput.trim() && !aiThinking) ? '#fff' : '#b6bac6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: (aiInput.trim() && !aiThinking) ? 'pointer' : 'default', transition: 'all .15s' }}>
+                      {aiThinking ? '…' : '➤'}
                     </div>
                   </div>
                 </div>
@@ -1561,11 +1597,15 @@ const Dashboard: React.FC = () => {
                   <div style={{ width: 32, height: 32, borderRadius: 10, background: '#e4f7ef', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>💬</div>
                 </div>
 
-                {/* Team members */}
-                {[
-                  { name: 'Mohammed El Fassi', role: 'Directeur',  initials: 'ME', color: '#059669', available: true },
-                  { name: 'Aicha Benmoussa',   role: 'Secrétaire', initials: 'AB', color: '#1E5FA8', available: true },
-                ].map((member, i) => (
+                {/* Team members — derived from real data */}
+                {teams.slice(0, 2).map((t, i) => {
+                  const member = {
+                    name: t.name,
+                    role: `${t.total} demandes · ${t.taux}%`,
+                    color: t.color,
+                    available: t.planifie > 0 || t.bloque > 0,
+                  };
+                  return (
                   <div key={i}
                     onClick={() => navigate('/inbox')}
                     style={{
@@ -1586,7 +1626,7 @@ const Dashboard: React.FC = () => {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 11, fontWeight: 800,
                       }}>
-                        {member.initials}
+                        {initials(member.name)}
                       </div>
                       <div style={{
                         position: 'absolute', bottom: -1, right: -1,
@@ -1612,12 +1652,13 @@ const Dashboard: React.FC = () => {
                         background: member.available ? '#e4f7ef' : '#fdecec',
                         padding: '2px 7px', borderRadius: 6,
                       }}>
-                        {member.available ? 'En ligne' : 'Absent'}
+                        {member.available ? 'Actif' : 'Inactif'}
                       </span>
                       <span style={{ color: '#c2c6d2', fontSize: 16, lineHeight: 1 }}>›</span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
                 {/* CTA button */}
                 <button
@@ -1847,13 +1888,11 @@ const Dashboard: React.FC = () => {
                             {/* Total */}
                             <div style={{ fontSize: 14, fontWeight: 800, color: '#1d2030' }}>{e.total}</div>
 
-                            {/* Responsable (stacked avatars) */}
+                            {/* Chef d'équipe — initiales du nom d'équipe */}
                             <div style={{ display: 'flex' }}>
-                              {[e.name, ...(sub.length > 1 ? [sub[0]?.client || ''] : [])].slice(0, 2).map((n, i) => (
-                                <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: colorFor(n), color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, border: '2px solid #fff', marginLeft: i > 0 ? -9 : 0, flexShrink: 0 }}>
-                                  {initials(n)}
-                                </div>
-                              ))}
+                              <div style={{ width: 28, height: 28, borderRadius: '50%', background: e.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, border: '2px solid #fff', flexShrink: 0 }}>
+                                {initials(e.name)}
+                              </div>
                             </div>
 
                             {/* Progression */}

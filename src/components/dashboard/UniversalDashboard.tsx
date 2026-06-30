@@ -213,7 +213,7 @@ function UniversalChart({ chart, data, crossFilter, onFilter, isDark }: ChartPro
             </PieChart>
           </ResponsiveContainer>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {chartData.slice(0, 6).map((d, i) => (
+            {chartData.slice(0, 8).map((d, i) => (
               <div key={i} onClick={() => onFilter(chart.xColumn, d.name)}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', opacity: active && active !== d.name ? 0.4 : 1 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: PALETTE[i % PALETTE.length], flexShrink: 0 }} />
@@ -367,7 +367,7 @@ export function UniversalDashboard({ profile, fileName, isDark }: Props) {
   const filteredData = useMemo(() => {
     if (!Object.keys(crossFilter).length) return profile.rawData;
     return profile.rawData.filter(row =>
-      Object.entries(crossFilter).every(([col, val]) => (row[col] || '').trim() === val)
+      Object.entries(crossFilter).every(([col, val]) => (row[col] || '').trim().slice(0, 30) === val)
     );
   }, [profile.rawData, crossFilter]);
 
@@ -635,7 +635,9 @@ export function UniversalDashboard({ profile, fileName, isDark }: Props) {
         const sorted = sortCol
           ? [...filteredData].sort((a, b) => {
               const av = a[sortCol] || '', bv = b[sortCol] || '';
-              const an = parseFloat(av), bn = parseFloat(bv);
+              // Only sort numerically when the entire string is a pure number
+              const an = /^\s*-?\d+(\.\d+)?\s*$/.test(av) ? parseFloat(av) : NaN;
+              const bn = /^\s*-?\d+(\.\d+)?\s*$/.test(bv) ? parseFloat(bv) : NaN;
               const cmp = !isNaN(an) && !isNaN(bn) ? an - bn : av.localeCompare(bv);
               return sortDir === 'asc' ? cmp : -cmp;
             })
