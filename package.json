@@ -8,7 +8,9 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:preview": "node scripts/deploy.mjs preview",
+    "deploy": "node scripts/deploy.mjs production"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.1",
@@ -43,6 +45,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.20",
+    "basic-ftp": "^6.0.1",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
