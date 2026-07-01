@@ -33,7 +33,11 @@ import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 import { InsightCards } from '@/components/dashboard/InsightCards';
 import { SchemaPanel } from '@/components/dashboard/SchemaPanel';
 import { UniversalDashboard } from '@/components/dashboard/UniversalDashboard';
+import { UploadWizard } from '@/components/dashboard/UploadWizard';
+import type { WizardResult } from '@/components/dashboard/UploadWizard';
 import type { UniversalDatasetProfile } from '@/hooks/useExcelData';
+import { listSavedFiles, downloadFromStorage, deleteFileMeta } from '@/lib/uploadService';
+import type { SavedFile } from '@/lib/uploadService';
 
 // ─── Demo dataset (as CanonicalRecord[]) ─────────────────────────────────────
 
@@ -147,8 +151,6 @@ const Dashboard: React.FC = () => {
   const [profile,         setProfile]         = useState<DataProfile | null>(null);
   const [universalProfile, setUniversalProfile] = useState<UniversalDatasetProfile | null>(null);
   const [fileName,  setFileName]  = useState('');
-  const [dragging,  setDragging]  = useState(false);
-  const [loading,   setLoading]   = useState(false);
   const [showSchema, setShowSchema] = useState(false);
 
   // ── UI state ──
@@ -156,10 +158,17 @@ const Dashboard: React.FC = () => {
   const [filters,  setFilters]  = useState<Filters>(DEFAULT_FILTERS);
   const [dashSection, setDashSection] = useState<'kpis' | 'charts' | 'forecast' | 'table' | 'excel' | 'ai'>('excel');
   const [tab,      setTab]      = useState<TabKey>('all');
-  const [sortCol,  setSortCol]  = useState<'client' | 'team' | 'offer' | 'planned_date' | '_status'>('planned_date');
+  const [sortCol,  setSortCol]  = useState<'client' | 'team' | 'offer' | 'planned_date' | 'installation_date' | '_status'>('planned_date');
   const [sortDir,  setSortDir]  = useState<'asc' | 'desc'>('asc');
   const [page,     setPage]     = useState(1);
   const PAGE_SIZE = 20;
+
+  const [teamSortCol, setTeamSortCol] = useState<'name' | 'total' | 'installe' | 'taux' | 'status'>('name');
+  const [teamSortDir, setTeamSortDir] = useState<'asc' | 'desc'>('asc');
+  const toggleTeamSort = (col: typeof teamSortCol) => {
+    if (teamSortCol === col) setTeamSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setTeamSortCol(col); setTeamSortDir('asc'); }
+  };
 
   // Drill-down via chart clicks
   const [drillStatus, setDrillStatus] = useState<string | null>(null);
@@ -174,14 +183,13 @@ const Dashboard: React.FC = () => {
   ]);
   const [aiInput, setAiInput] = useState('');
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
-  const [savedFiles, setSavedFiles] = useState<{ name: string; size: number; modified: number }[]>([]);
+  const [cloudFiles, setCloudFiles] = useState<SavedFile[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjectRecord | null>(null);
   const [projectPanelTab, setProjectPanelTab] = useState<'overview' | 'columns' | 'warnings'>('overview');
   const [selectedTeam, setSelectedTeam] = useState<TeamStats | null>(null);
   const [teamPanelTab, setTeamPanelTab] = useState<'overview' | 'clients' | 'perf'>('overview');
   const [teamSearch, setTeamSearch] = useState('');
   const chatEndRef     = useRef<HTMLDivElement>(null);
-  const fileRef        = useRef<HTMLInputElement>(null);
   const chatScrollInit = useRef(false);
 
   useEffect(() => {
@@ -189,11 +197,11 @@ const Dashboard: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMsgs]);
 
-  const fetchSavedFiles = useCallback(() => {
-    fetch('/api/uploads').then(r => r.json()).then(setSavedFiles).catch(() => {});
-  }, []);
+  const fetchCloudFiles = useCallback(() => {
+    listSavedFiles(user?.id ?? null).then(setCloudFiles).catch(() => {});
+  }, [user]);
 
-  useEffect(() => { fetchSavedFiles(); }, [fetchSavedFiles]);
+  useEffect(() => { fetchCloudFiles(); }, [fetchCloudFiles]);
 
   // ── Process records ──
   const allProcessed = useMemo(() => processRecords(rawRecs), [rawRecs]);
@@ -242,13 +250,26 @@ const Dashboard: React.FC = () => {
   const tabFiltered = useMemo(() => tab === 'all' ? records : records.filter(r => r._status === tab), [records, tab]);
 
   const sorted = useMemo(() => [...tabFiltered].sort((a, b) => {
+    const statusRank = (r: ProcessedRecord) => {
+      const idx = STATUS_ORDER.indexOf(r._status);
+      return idx === -1 ? STATUS_ORDER.length : idx;
+    };
+
+    if (sortCol === '_status') {
+      const cmp = statusRank(a) - statusRank(b);
+      return sortDir === 'asc' ? cmp : -cmp;
+    }
+
     let av = '', bv = '';
-    if (sortCol === 'client')       { av = a.client || '';    bv = b.client || ''; }
-    if (sortCol === 'team')         { av = a._teamName;        bv = b._teamName; }
-    if (sortCol === 'offer')        { av = String(a._debitNum ?? 0); bv = String(b._debitNum ?? 0); }
-    if (sortCol === 'planned_date') { av = a.planned_date || 'z'; bv = b.planned_date || 'z'; }
-    if (sortCol === '_status')      { av = a._status;          bv = b._status; }
-    return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    if (sortCol === 'client')            { av = a.client || '';               bv = b.client || ''; }
+    if (sortCol === 'team')              { av = a._teamName;                   bv = b._teamName; }
+    if (sortCol === 'offer')             { av = String(a._debitNum ?? 0);      bv = String(b._debitNum ?? 0); }
+    if (sortCol === 'planned_date')      { av = a.planned_date || 'z';        bv = b.planned_date || 'z'; }
+    if (sortCol === 'installation_date') { av = a.installation_date || 'z';   bv = b.installation_date || 'z'; }
+
+    const primary = sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    if (primary !== 0) return primary;
+    return statusRank(a) - statusRank(b);
   }), [tabFiltered, sortCol, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
@@ -274,120 +295,54 @@ const Dashboard: React.FC = () => {
     return { label: `${d} Méga`, count: c, pct: records.length ? Math.round(c / records.length * 100) : 0, width: Math.round(c / maxDeb * 100) + '%', color: debitColors[d] };
   }).filter(d => d.count > 0);
 
-  // ── Reload a file saved on disk ──
-  const reloadSavedFile = useCallback((name: string) => {
-    setLoading(true);
-    fetch(`/api/file/${encodeURIComponent(name)}`)
-      .then(r => r.arrayBuffer())
-      .then(buf => {
-        try {
-          const result = parseExcelBuffer(buf, name);
-          if (!result.canonical.length) { alert('Aucun enregistrement valide détecté.'); setLoading(false); return; }
-          setRawRecs(result.canonical);
-          setSchema(result.schema);
-          setCaps(result.caps);
-          setProfile(result.profile);
-          setUniversalProfile(result.universalProfile);
-          setFileName(name);
-          setFilters(DEFAULT_FILTERS);
-          setTab('all');
-          setPage(1);
-          setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
-          setShowSchema(false);
-          const _kpisCalc = computeKPIs(processRecords(result.canonical));
-          const newProject: ProjectRecord = {
-            id: Date.now().toString(),
-            fileName: name,
-            uploadedAt: Date.now(),
-            recordCount: result.canonical.length,
-            qualityScore: result.profile.qualityScore,
-            taux: _kpisCalc.taux,
-            teamCount: new Set(result.canonical.filter(r => r.team).map(r => r.team)).size,
-            records: result.canonical,
-            schema: result.schema,
-            caps: result.caps,
-            profile: result.profile,
-          };
-          setProjects(prev => [newProject, ...prev.filter(p => p.fileName !== name)]);
-          setChatMsgs(prev => [...prev, { role: 'ai', text: `✓ "${name}" rechargé depuis le disque — ${result.canonical.length} enregistrements.`, ts: nowTs() }]);
-          setDashSection('kpis');
-        } catch { alert('Impossible de lire ce fichier.'); }
-        setLoading(false);
-      })
-      .catch(() => { alert('Erreur lors du chargement du fichier.'); setLoading(false); });
-  }, []);
-
-  // ── File ingestion ──
-  const readFile = useCallback((file: File) => {
-    setLoading(true);
-    // Save to disk (non-blocking)
-    file.arrayBuffer().then(buf => {
-      fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'x-filename': encodeURIComponent(file.name) },
-        body: buf,
-      }).then(() => fetchSavedFiles()).catch(() => {});
-    });
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const result = parseExcelBuffer(ev.target!.result as ArrayBuffer, file.name);
-
-        if (!result.canonical.length) {
-          alert(`Aucun enregistrement valide détecté. Colonnes trouvées : ${result.schema.sheets.flatMap(s => s.detectedColumns.map(c => c.raw)).join(', ')}`);
-          setLoading(false);
-          return;
-        }
-
-        setRawRecs(result.canonical);
-        setSchema(result.schema);
-        setCaps(result.caps);
-        setProfile(result.profile);
-        setUniversalProfile(result.universalProfile);
-        setFileName(file.name);
-        setFilters(DEFAULT_FILTERS);
-        setTab('all');
-        setPage(1);
-        setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
-        setShowSchema(false);
-        setDashSection('excel');
-        const _kpisCalc = computeKPIs(processRecords(result.canonical));
-        const newProject: ProjectRecord = {
-          id: Date.now().toString(),
-          fileName: file.name,
-          uploadedAt: Date.now(),
-          recordCount: result.canonical.length,
-          qualityScore: result.profile.qualityScore,
-          taux: _kpisCalc.taux,
-          teamCount: new Set(result.canonical.filter(r => r.team).map(r => r.team)).size,
-          records: result.canonical,
-          schema: result.schema,
-          caps: result.caps,
-          profile: result.profile,
-        };
-        setProjects(prev => [newProject, ...prev.filter(p => p.fileName !== file.name)]);
-
-        const warn = result.schema.warnings.length;
-        const unmapped = result.schema.unmappedColumns.length;
-        setChatMsgs(prev => [...prev, {
-          role: 'ai',
-          text: `✓ "${file.name}" importé — ${result.canonical.length} enregistrements depuis ${result.schema.sheets.length} feuille(s).\nScore qualité : ${result.profile.qualityScore}/100.${warn > 0 ? `\n⚠️ ${warn} avertissement(s) détecté(s).` : ''}${unmapped > 0 ? `\n❓ ${unmapped} colonne(s) non reconnue(s).` : ''}\nTous les graphiques ont été mis à jour.`,
-          ts: nowTs(),
-        }]);
-      } catch (err) {
-        console.error(err);
-        alert('Impossible de lire ce fichier. Vérifiez qu\'il s\'agit d\'un fichier Excel (.xlsx, .xls) ou CSV valide.');
-      }
-      setLoading(false);
+  // ── Wizard completion handler ──
+  const handleWizardComplete = useCallback((result: WizardResult) => {
+    const { canonical, schema: s, caps: c, profile: p, universalProfile: up, fileName: fn } = result;
+    setRawRecs(canonical);
+    setSchema(s);
+    setCaps(c);
+    setProfile(p);
+    setUniversalProfile(up);
+    setFileName(fn);
+    setFilters(DEFAULT_FILTERS);
+    setTab('all');
+    setPage(1);
+    setDrillStatus(null); setDrillTeam(null); setDrillDebit(null);
+    setShowSchema(false);
+    const kpisCalc = computeKPIs(processRecords(canonical));
+    const newProject: ProjectRecord = {
+      id: Date.now().toString(),
+      fileName: fn,
+      uploadedAt: Date.now(),
+      recordCount: canonical.length,
+      qualityScore: p.qualityScore,
+      taux: kpisCalc.taux,
+      teamCount: new Set(canonical.filter(r => r.team).map(r => r.team)).size,
+      records: canonical,
+      schema: s,
+      caps: c,
+      profile: p,
     };
-    reader.readAsArrayBuffer(file);
-  }, [fetchSavedFiles]);
+    setProjects(prev => [newProject, ...prev.filter(x => x.fileName !== fn)]);
+    const warn    = s.warnings.length;
+    const unmapped = s.unmappedColumns.length;
+    setChatMsgs(prev => [...prev, {
+      role: 'ai',
+      text: `✓ "${fn}" importé — ${canonical.length} enregistrements depuis ${s.sheets.length} feuille(s).\nScore qualité : ${p.qualityScore}/100.${warn > 0 ? `\n⚠️ ${warn} avertissement(s).` : ''}${unmapped > 0 ? `\n❓ ${unmapped} colonne(s) non reconnue(s).` : ''}\nTous les graphiques ont été mis à jour.`,
+      ts: nowTs(),
+    }]);
+    fetchCloudFiles();
+    setDashSection('kpis');
+  }, [fetchCloudFiles]);
 
-  const onFile     = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { const f = e.target.files?.[0]; if (f) readFile(f); }, [readFile]);
-  const pickFile   = useCallback(() => fileRef.current?.click(), []);
-  const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(true); }, []);
-  const onDragLeave= useCallback(() => setDragging(false), []);
-  const onDrop     = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files?.[0]; if (f) readFile(f); }, [readFile]);
+  // ── Reload a file from Supabase cloud ──
+  const reloadCloudFile = useCallback(async (f: SavedFile) => {
+    if (!f.file_path) return;
+    const buf = await downloadFromStorage(f.file_path);
+    if (!buf) { console.warn('Impossible de télécharger le fichier cloud.'); return; }
+    const result = parseExcelBuffer(buf, f.file_name);
+    handleWizardComplete({ ...result, fileName: f.file_name, supabasePath: f.file_path });
+  }, [handleWizardComplete]);
 
   // ── AI ──
   const sendMessage = useCallback(async (text: string) => {
@@ -452,7 +407,7 @@ const Dashboard: React.FC = () => {
   const card: React.CSSProperties = { background: '#fff', borderRadius: 20, boxShadow: '0 6px 20px rgba(30,35,60,.05)', padding: '22px 24px' };
 
   const SortArrow: React.FC<{ col: string }> = ({ col }) =>
-    sortCol === col ? <span style={{ color: '#fff', marginLeft: 3 }}>{sortDir === 'asc' ? '↑' : '↓'}</span> : null;
+    sortCol === col ? <span style={{ color: ACCENT, marginLeft: 3 }}>{sortDir === 'asc' ? '↑' : '↓'}</span> : null;
 
   const ColHead: React.FC<{ col: typeof sortCol; label: string }> = ({ col, label }) => (
     <div onClick={() => toggleSort(col)} style={{ fontSize: 11.5, fontWeight: 700, color: sortCol === col ? ACCENT : '#9398a8', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -1311,32 +1266,8 @@ const Dashboard: React.FC = () => {
                 {dashSection === 'excel' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
 
-                    {/* Upload area */}
-                    <div style={card}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                        <div>
-                          <div style={{ fontSize: 12, color: '#9398a8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: .5 }}>Analyse de projet</div>
-                          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -.3, marginTop: 3 }}>Importer un fichier Excel</div>
-                        </div>
-                        <div style={{ width: 44, height: 44, borderRadius: 13, background: hexA(ACCENT, .1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>📊</div>
-                      </div>
-                      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={onFile} style={{ display: 'none' }} />
-                      <div onClick={pickFile} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
-                        style={{ border: `1.6px dashed ${dragging ? ACCENT : '#c9c4ea'}`, borderRadius: 14, background: dragging ? hexA(ACCENT, .04) : '#fafafc', padding: '24px 20px', textAlign: 'center', cursor: 'pointer', transition: 'all .2s', boxShadow: dragging ? `0 0 0 3px ${hexA(ACCENT, .1)}` : undefined }}>
-                        {loading ? (
-                          <div style={{ fontSize: 14, fontWeight: 700, color: ACCENT }}>⏳ Analyse en cours…</div>
-                        ) : (
-                          <>
-                            <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
-                            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#3a3f52' }}>{fileName ? `✓ ${fileName}` : 'Glissez votre fichier ici'}</div>
-                            <div style={{ fontSize: 12, color: '#9398a8', marginTop: 4, fontWeight: 500 }}>Format .xlsx, .xls ou .csv — détection automatique des colonnes</div>
-                            <div style={{ display: 'inline-block', marginTop: 14, background: ACCENT, color: '#fff', fontSize: 13, fontWeight: 700, padding: '9px 22px', borderRadius: 11, boxShadow: `0 6px 16px ${SHAD}` }}>
-                              Choisir un fichier
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                    {/* ── Upload Wizard ── */}
+                    <UploadWizard userId={user?.id} onComplete={handleWizardComplete} />
 
                     {/* Projects list */}
                     {projects.length > 0 && (
@@ -1406,52 +1337,47 @@ const Dashboard: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Saved files on disk */}
-                    {savedFiles.length > 0 && (
+                    {/* ── Cloud files ── */}
+                    {cloudFiles.length > 0 && (
                       <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 6px 20px rgba(30,35,60,.05)', overflow: 'hidden' }}>
                         <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid #f0f1f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div>
-                            <div style={{ fontSize: 17, fontWeight: 800 }}>Fichiers sauvegardés</div>
-                            <div style={{ fontSize: 11.5, color: '#9398a8', fontWeight: 500, marginTop: 1 }}>Stockés dans le dossier <code style={{ background: '#f4f5f8', padding: '1px 6px', borderRadius: 5, fontSize: 11 }}>uploads/</code></div>
+                            <div style={{ fontSize: 17, fontWeight: 800 }}>☁️ Fichiers cloud</div>
+                            <div style={{ fontSize: 11.5, color: '#9398a8', fontWeight: 500, marginTop: 1 }}>Sauvegardés dans Supabase Storage</div>
                           </div>
-                          <button onClick={fetchSavedFiles} style={{ background: '#f4f5f8', border: 'none', color: '#6c7184', fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, cursor: 'pointer' }}>↺ Rafraîchir</button>
+                          <button onClick={fetchCloudFiles} style={{ background: '#f4f5f8', border: 'none', color: '#6c7184', fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 9, cursor: 'pointer' }}>↺ Rafraîchir</button>
                         </div>
-                        {savedFiles.map((f, i) => {
-                          const kb = Math.round(f.size / 1024);
-                          const date = new Date(f.modified).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-                          const time = new Date(f.modified).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                          const ext = f.name.split('.').pop()?.toLowerCase() || '';
-                          const extColor = ext === 'csv' ? '#16a06f' : '#5b8def';
+                        {cloudFiles.map((f, i) => {
+                          const kb   = Math.round(f.file_size / 1024);
+                          const date = new Date(f.uploaded_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+                          const time = new Date(f.uploaded_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                          const ext  = f.file_name.split('.').pop()?.toLowerCase() || '';
                           return (
-                            <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: i < savedFiles.length - 1 ? '1px solid #f3f4f8' : 'none' }}>
-                              <div style={{ width: 36, height: 36, borderRadius: 10, background: hexA(extColor, .12), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
+                            <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 20px', borderBottom: i < cloudFiles.length - 1 ? '1px solid #f3f4f8' : 'none' }}>
+                              <div style={{ width: 36, height: 36, borderRadius: 10, background: hexA(ACCENT, .1), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
                                 {ext === 'csv' ? '📄' : '📊'}
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</div>
-                                <div style={{ fontSize: 11, color: '#9398a8', fontWeight: 500, marginTop: 2 }}>{kb} Ko · {date} à {time}</div>
+                                <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.file_name}</div>
+                                <div style={{ fontSize: 11, color: '#9398a8', fontWeight: 500, marginTop: 2 }}>
+                                  {f.record_count} lignes · {kb} Ko · {date} à {time}
+                                </div>
                               </div>
-                              <button onClick={() => reloadSavedFile(f.name)} disabled={loading}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                                <div style={{ width: 36, height: 4, borderRadius: 4, background: '#e8eaef', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: f.quality_score + '%', background: f.quality_score >= 80 ? '#16c79a' : f.quality_score >= 55 ? '#d99a2b' : '#e0564f', borderRadius: 4 }} />
+                                </div>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#9398a8' }}>{f.quality_score}</span>
+                              </div>
+                              <button onClick={() => reloadCloudFile(f)}
                                 style={{ background: hexA(ACCENT, .1), border: 'none', color: ACCENT, fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 9, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                                 ▶ Charger
                               </button>
-                              <button onClick={() => {
-                                fetch(`/api/delete/${encodeURIComponent(f.name)}`, { method: 'DELETE' })
-                                  .then(() => fetchSavedFiles()).catch(() => {});
-                              }}
+                              <button onClick={() => deleteFileMeta(f.id, f.file_path).then(fetchCloudFiles)}
                                 style={{ width: 30, height: 30, borderRadius: 8, background: '#fdecec', border: 'none', color: '#e0564f', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>🗑</button>
                             </div>
                           );
                         })}
-                      </div>
-                    )}
-
-                    {/* Empty state */}
-                    {projects.length === 0 && savedFiles.length === 0 && (
-                      <div style={{ ...card, textAlign: 'center', padding: '36px 24px' }}>
-                        <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: '#1d2030', marginBottom: 6 }}>Aucun projet analysé</div>
-                        <div style={{ fontSize: 12.5, color: '#9398a8', fontWeight: 500 }}>Importez un fichier Excel pour démarrer votre premier projet d'analyse.</div>
                       </div>
                     )}
                   </div>
@@ -1694,17 +1620,17 @@ const Dashboard: React.FC = () => {
                 <button onClick={exportCSV} style={{ border: 'none', background: '#e4f7ef', color: '#16a06f', fontSize: 13, fontWeight: 700, padding: '9px 18px', borderRadius: 12, cursor: 'pointer' }}>↓ Exporter CSV</button>
               </div>
               <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: `2fr ${caps.hasTeam ? '1fr' : ''} ${caps.hasOffer ? '1fr' : ''} ${caps.hasPlannedDate ? '1fr' : ''} ${caps.hasInstallDate ? '1fr' : ''} 1.2fr 40px`, gap: 12, padding: '12px 20px', fontSize: 11.5, fontWeight: 700, color: '#9398a8', textTransform: 'uppercase', letterSpacing: .5, borderBottom: '1px solid #f3f4f8' }}>
-                  <div>Client</div>
-                  {caps.hasTeam && <div>Équipe</div>}
-                  {caps.hasOffer && <div>Offre</div>}
-                  {caps.hasPlannedDate && <div>Planifié</div>}
-                  {caps.hasInstallDate && <div>Installé</div>}
-                  <div>Statut</div>
+                <div style={{ display: 'grid', gridTemplateColumns: `2fr ${caps.hasTeam ? '1fr' : ''} ${caps.hasOffer ? '1fr' : ''} ${caps.hasPlannedDate ? '1fr' : ''} ${caps.hasInstallDate ? '1fr' : ''} 1.2fr 40px`, gap: 12, padding: '12px 20px', borderBottom: '1px solid #f3f4f8' }}>
+                  <ColHead col="client" label="Client" />
+                  {caps.hasTeam && <ColHead col="team" label="Équipe" />}
+                  {caps.hasOffer && <ColHead col="offer" label="Offre" />}
+                  {caps.hasPlannedDate && <ColHead col="planned_date" label="Planifié" />}
+                  {caps.hasInstallDate && <ColHead col="installation_date" label="Installé" />}
+                  <ColHead col="_status" label="Statut" />
                   <div />
                 </div>
                 <div style={{ overflowY: 'auto', maxHeight: 600 }}>
-                  {records.map((r, i) => {
+                  {sorted.map((r, i) => {
                     const sm = STATUS_META[r._status];
                     return (
                       <div key={i} style={{ display: 'grid', gridTemplateColumns: `2fr ${caps.hasTeam ? '1fr' : ''} ${caps.hasOffer ? '1fr' : ''} ${caps.hasPlannedDate ? '1fr' : ''} ${caps.hasInstallDate ? '1fr' : ''} 1.2fr 40px`, gap: 12, padding: '13px 20px', alignItems: 'center', borderBottom: '1px solid #f8f9fc' }}>
@@ -1796,9 +1722,17 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               ) : (() => {
-                const filteredTeams = teams.filter(t =>
+                const filteredTeams = [...teams.filter(t =>
                   t.name.toLowerCase().includes(teamSearch.toLowerCase())
-                );
+                )].sort((a, b) => {
+                  let cmp = 0;
+                  if (teamSortCol === 'name')     cmp = a.name.localeCompare(b.name);
+                  if (teamSortCol === 'total')    cmp = a.total - b.total;
+                  if (teamSortCol === 'installe') cmp = a.installe - b.installe;
+                  if (teamSortCol === 'taux')     cmp = a.taux - b.taux;
+                  if (teamSortCol === 'status')   cmp = a.taux - b.taux;
+                  return teamSortDir === 'asc' ? cmp : -cmp;
+                });
                 return (
                   <>
                     {/* Top bar */}
@@ -1823,15 +1757,24 @@ const Dashboard: React.FC = () => {
                     {/* CRM Table */}
                     <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 6px 20px rgba(30,35,60,.05)', overflow: 'hidden' }}>
                       {/* Column headers */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '36px 2.2fr 1.4fr 1fr 0.7fr 0.9fr 1.4fr 1fr', gap: 10, padding: '11px 20px', fontSize: 10.5, fontWeight: 700, color: '#9398a8', textTransform: 'uppercase' as const, letterSpacing: .5, borderBottom: '1.5px solid #f0f1f5', background: '#fafbfc' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '36px 2.2fr 1.4fr 1fr 0.7fr 0.9fr 1.4fr 1fr', gap: 10, padding: '11px 20px', borderBottom: '1.5px solid #f0f1f5', background: '#fafbfc' }}>
                         <div><input type="checkbox" style={{ accentColor: ACCENT, cursor: 'pointer' }} readOnly /></div>
-                        <div>Nom</div>
-                        <div>Contacts</div>
-                        <div>Spécialité</div>
-                        <div>Total</div>
-                        <div>Responsable</div>
-                        <div>Progression</div>
-                        <div>Statut</div>
+                        {(['name', 'installe', null, 'total', null, 'taux', 'status'] as const).reduce<React.ReactNode[]>((acc, col, idx) => {
+                          const labels = ['Nom', 'Contacts', 'Spécialité', 'Total', 'Responsable', 'Progression', 'Statut'];
+                          const label = labels[idx];
+                          if (col === null) {
+                            acc.push(<div key={idx} style={{ fontSize: 10.5, fontWeight: 700, color: '#9398a8', textTransform: 'uppercase', letterSpacing: .5 }}>{label}</div>);
+                          } else {
+                            const active = teamSortCol === col;
+                            acc.push(
+                              <div key={idx} onClick={() => toggleTeamSort(col)}
+                                style={{ fontSize: 10.5, fontWeight: 700, color: active ? ACCENT : '#9398a8', textTransform: 'uppercase', letterSpacing: .5, cursor: 'pointer', userSelect: 'none', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                {label}{active && <span style={{ color: ACCENT }}>{teamSortDir === 'asc' ? ' ↑' : ' ↓'}</span>}
+                              </div>
+                            );
+                          }
+                          return acc;
+                        }, [])}
                       </div>
 
                       {/* Rows */}

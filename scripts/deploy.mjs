@@ -58,7 +58,11 @@ rmSync(path.join(root, outDir), { recursive: true, force: true });
 execSync(`npx vite build --base=${base} --outDir ${outDir}`, {
   cwd: root,
   stdio: "inherit",
-  env: { ...process.env, MSYS_NO_PATHCONV: "1" },
+  env: {
+    ...process.env,
+    MSYS_NO_PATHCONV: "1",
+    ...(isPreview ? { VITE_USE_MOCK_AUTH: "true" } : {}),
+  },
 });
 
 writeFileSync(

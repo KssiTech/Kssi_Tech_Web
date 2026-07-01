@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     // Demo credentials — DEV only bypass (never ships to production)
-    if (import.meta.env.DEV) {
+    if (import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_AUTH === 'true') {
       const MOCK_USERS: Record<string, { id: string; name: string; role: string }> = {
         'demo@kssitech.ma':       { id: 'demo-001', name: 'Hamza Benali',      role: 'secretaire' },
         'secretaire@kssitech.ma': { id: 'demo-002', name: 'Aicha Benmoussa',   role: 'secretaire' },
@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    if (import.meta.env.DEV && user?.id?.startsWith('demo-')) {
+    if ((import.meta.env.DEV || import.meta.env.VITE_USE_MOCK_AUTH === 'true') && user?.id?.startsWith('demo-')) {
       setUser(null)
       setSession(null)
       return
